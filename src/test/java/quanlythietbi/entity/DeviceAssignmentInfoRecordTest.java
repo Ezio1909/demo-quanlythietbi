@@ -20,6 +20,6 @@ public class DeviceAssignmentInfoRecordTest {
     @Test
     public void testDeviceAssignmentInfoRecordWithNullId() {
         assertThrows(NullPointerException.class,
-                () -> new DeviceAssignmentInfoRecord(null, 1, 2, null, null));
+            () -> new DeviceAssignmentInfoRecord(null, 1, 2, null, null));
     }
 }

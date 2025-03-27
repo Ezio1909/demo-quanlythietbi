@@ -1,4 +1,4 @@
-package quanlythietbi.model;
+package quanlythietbi.entity;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
