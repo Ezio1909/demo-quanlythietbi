@@ -8,7 +8,7 @@ public record DeviceAssignmentInfoRecord(
     Integer employeeId,
     Integer deviceId,
     LocalDateTime assignedAt,
-    LocalDateTime returnedAt // Can be null
+    LocalDateTime returnedAt
 ) {
     public DeviceAssignmentInfoRecord {
         Objects.requireNonNull(id);
