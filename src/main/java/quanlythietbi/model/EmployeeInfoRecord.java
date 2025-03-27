@@ -2,14 +2,13 @@ package quanlythietbi.model;
 
 import java.util.Objects;
 
-public record DeviceInfoRecord(
+public record EmployeeInfoRecord(
     Integer id,
     String name,
-    String type,
-    String serialNumber,
-    String status
+    String email,
+    String department
 ) {
-    public DeviceInfoRecord {
+    public EmployeeInfoRecord {
         Objects.requireNonNull(id);
     }
 }

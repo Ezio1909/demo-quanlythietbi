@@ -11,18 +11,18 @@ public class DeviceInfoRecordTest {
 
     @Test
     public void testDeviceInfoRecordSuccess() {
-        DeviceInfoRecord record = new DeviceInfoRecord(1, "abc", "cde");
+        DeviceInfoRecord record = new DeviceInfoRecord(1, "abc", "cde", null, null);
         logger.info(record.toString());
-        assertEquals(1, record.deviceId());
-        assertEquals("abc", record.deviceName());
-        assertEquals("cde", record.deviceType());
+        assertEquals(1, record.id());
+        assertEquals("abc", record.name());
+        assertEquals("cde", record.type());
     }
 
     @Test
     public void testDeviceInfoRecordWithNullDeviceId() {
         assertThrows(
-                NullPointerException.class,
-                () -> new DeviceInfoRecord(null, "abc", "cde")
+            NullPointerException.class,
+            () -> new DeviceInfoRecord(null, "abc", "cde", null, null)
         );
     }
 }
