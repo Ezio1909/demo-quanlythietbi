@@ -1,4 +1,4 @@
-package quanlythietbi.model;
+package quanlythietbi.entity;
 
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
