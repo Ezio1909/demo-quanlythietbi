@@ -1,5 +1,7 @@
 package quanlythietbi.connector;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import quanlythietbi.enums.DBType;
 
 import java.sql.Connection;
@@ -32,11 +34,12 @@ import java.util.HashMap;
  * volatile prevents this by enforcing happens-before rules: <br>
  * Writes <b>before</b> the volatile assignment (e.g. object construction) happen <b>before</b> any other thread can read it
  * */
-public class ConnectionManagerImpl implements IConnectionManager {
+public class ConnectionManagerImpl implements IConnectionManager, AutoCloseable {
 
     private final DBType dbType;
-    private static volatile Connection singletonConnection;
+    private static final Logger logger = LoggerFactory.getLogger(ConnectionManagerImpl.class);
     private static final HashMap<DBType, IConnectionManager> mapConnectionFactory = new HashMap<>();
+    private static volatile Connection singletonConnection;
 
     public ConnectionManagerImpl(DBType dbType) {
         this.dbType = dbType;
@@ -62,7 +65,9 @@ public class ConnectionManagerImpl implements IConnectionManager {
         }
     }
 
+    @Override
     public void close() throws SQLException {
+        logger.info("Closing connection {}...", singletonConnection);
         if (singletonConnection != null && !singletonConnection.isClosed()) {
             singletonConnection.close();
         }

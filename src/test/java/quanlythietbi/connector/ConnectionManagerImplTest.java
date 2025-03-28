@@ -19,7 +19,7 @@ public class ConnectionManagerImplTest {
 
     @Test
     public void testInitConnectionManagerSuccess() {
-        logger.info("manager: {}", connectionManager);
+        logger.info("connectionManager: {}", connectionManager);
         assertNotNull(connectionManager);
     }
 
@@ -27,7 +27,7 @@ public class ConnectionManagerImplTest {
     public void testDiffManagerSameConnection() {
         IConnectionManager anotherManager = new ConnectionManagerImpl(DBType.H2);
         logger.info("anotherManager: {}", anotherManager);
-        assertNotEquals(anotherManager, connectionManager);
+        assertNotEquals(connectionManager, anotherManager);
         Connection conn = null;
         Connection anotherConn = null;
         try {
