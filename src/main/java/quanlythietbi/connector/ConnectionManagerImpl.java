@@ -2,11 +2,12 @@ package quanlythietbi.connector;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import quanlythietbi.connector.factory.ConnectionFactory;
+import quanlythietbi.connector.factory.IConnectionFactory;
 import quanlythietbi.enums.DBType;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.HashMap;
 
 /**
  * Provide a singleton thread-safe connection provider. Once the connection is created, it must be reused by other threads
@@ -34,11 +35,10 @@ import java.util.HashMap;
  * volatile prevents this by enforcing happens-before rules: <br>
  * Writes <b>before</b> the volatile assignment (e.g. object construction) happen <b>before</b> any other thread can read it
  * */
-public class ConnectionManagerImpl implements IConnectionManager, AutoCloseable {
+public class ConnectionManagerImpl implements IConnectionFactory, AutoCloseable {
 
     private final DBType dbType;
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManagerImpl.class);
-    private static final HashMap<DBType, IConnectionManager> mapConnectionFactory = new HashMap<>();
     private static volatile Connection singletonConnection;
 
     public ConnectionManagerImpl(DBType dbType) {
@@ -54,12 +54,7 @@ public class ConnectionManagerImpl implements IConnectionManager, AutoCloseable 
             if (isConnected()) {
                 return singletonConnection;
             }
-            IConnectionManager factory = mapConnectionFactory.computeIfAbsent(dbType, k ->
-                 switch(k) {
-                    case H2 -> new H2ConnectionImpl();
-                    case SQLITE -> new SQLiteConnectionImpl();
-                }
-            );
+            IConnectionFactory factory = new ConnectionFactory(dbType);
             singletonConnection = factory.getConnection();
             return singletonConnection;
         }
