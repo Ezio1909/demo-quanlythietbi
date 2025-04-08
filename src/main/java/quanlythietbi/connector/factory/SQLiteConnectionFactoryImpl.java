@@ -1,10 +1,10 @@
-package quanlythietbi.connector;
+package quanlythietbi.connector.factory;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class SQLiteConnectionImpl implements IConnectionManager {
+public class SQLiteConnectionFactoryImpl implements IConnectionFactory {
 
     private static final String urlString = "jdbc:sqlite:device_manager.db";
 

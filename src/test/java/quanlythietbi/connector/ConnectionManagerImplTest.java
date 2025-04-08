@@ -10,12 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import quanlythietbi.connector.factory.IConnectionFactory;
 import quanlythietbi.enums.DBType;
 
 public class ConnectionManagerImplTest {
 
     private static final Logger logger = LoggerFactory.getLogger(ConnectionManagerImplTest.class);
-    private static final IConnectionManager connectionManager = new ConnectionManagerImpl(DBType.H2);
+    private static final IConnectionFactory connectionManager = new ConnectionManagerImpl(DBType.H2);
 
     @Test
     public void testInitConnectionManagerSuccess() {
@@ -25,7 +26,7 @@ public class ConnectionManagerImplTest {
 
     @Test
     public void testDiffManagerSameConnection() {
-        IConnectionManager anotherManager = new ConnectionManagerImpl(DBType.H2);
+        IConnectionFactory anotherManager = new ConnectionManagerImpl(DBType.H2);
         logger.info("anotherManager: {}", anotherManager);
         assertNotEquals(connectionManager, anotherManager);
         Connection conn = null;

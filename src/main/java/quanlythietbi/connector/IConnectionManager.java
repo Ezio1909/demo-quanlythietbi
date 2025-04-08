@@ -1,8 +1,9 @@
 package quanlythietbi.connector;
 
-import java.sql.Connection;
 import java.sql.SQLException;
 
 public interface IConnectionManager {
-    Connection getConnection() throws SQLException;
+
+    <T> T doTask(IConnectionTask<T> task) throws SQLException;
+
 }
