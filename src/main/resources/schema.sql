@@ -22,4 +22,18 @@ CREATE TABLE IF NOT EXISTS device_assignments (
     status VARCHAR(50) NOT NULL DEFAULT 'Active',
     FOREIGN KEY (employee_id) REFERENCES employees(id),
     FOREIGN KEY (device_id) REFERENCES devices(id)
+);
+
+CREATE TABLE IF NOT EXISTS device_maintenance (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    device_id INTEGER NOT NULL,
+    maintenance_type VARCHAR(50) NOT NULL,
+    description TEXT,
+    reported_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    scheduled_for TIMESTAMP,
+    completed_at TIMESTAMP,
+    cost DECIMAL(10,2),
+    status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    notes TEXT,
+    FOREIGN KEY (device_id) REFERENCES devices(id)
 ); 
