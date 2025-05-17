@@ -106,7 +106,14 @@ public class DeviceManagementPanel extends JPanel {
             String serial = serialField.getText().trim();
 
             if (!name.isEmpty() && !type.isEmpty() && !serial.isEmpty()) {
-                adapter.addDevice(name, type, serial);
+                DeviceInfoRecord newDevice = new DeviceInfoRecord(
+                    null, // ID will be assigned by database
+                    name,
+                    type,
+                    serial,
+                    "Available" // Default status for new devices
+                );
+                adapter.addDevice(newDevice);
                 refreshDeviceTable();
             } else {
                 JOptionPane.showMessageDialog(this, 
