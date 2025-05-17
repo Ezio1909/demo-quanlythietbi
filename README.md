@@ -1,38 +1,40 @@
 # Device Management System
 
-A Java Swing-based application for managing company devices and their assignments to employees.
+A Java Swing-based application for managing company devices and their assignments to employees. Built with modern Java features and a clean architecture.
 
 ## Features
 
-- Device Management (CRUD operations)
-- Employee Management
-- Device Assignment System
-- Assignment Expiration Tracking
-- Device Maintenance Tracking
-- Dashboard with Key Metrics
-- Report Generation (PDF/Excel)
-- Search and Filter Capabilities
+### Device Management
+- Add and register new company devices
+- Update device information and status
+- Remove devices from inventory
+- View all devices in a sortable table
+- Track device availability status
 
-## Requirements
+### Assignment Management
+- Assign devices to employees
+- Track who has which device
+- Record device returns
+- View complete assignment history
+- Filter assignments by status (Active/Returned)
+- Search assignments by employee or device
 
-- Java 11 or higher
-- Maven 3.6 or higher
+### User Interface
+- Modern, intuitive interface
+- Easy-to-use navigation sidebar
+- Quick search and filter capabilities
+- Clear status indicators
+- Responsive table views
+- User-friendly forms and dialogs
 
-## Building the Application
+## Technical Stack
 
-1. Clone the repository
-2. Navigate to the project directory
-3. Build the project using Maven:
-```bash
-mvn clean package
-```
-
-## Running the Application
-
-After building, you can run the application using:
-```bash
-java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
-```
+- Java 17
+- Swing (Modern UI)
+- H2 Database
+- Custom Connection Pool (using BlockingQueue)
+- SLF4J + Logback (Logging)
+- Maven
 
 ## Project Structure
 
@@ -40,52 +42,55 @@ java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
 src/
 ├── main/
 │   ├── java/
-│   │   └── com/
-│   │       └── devicemanagement/
-│   │           ├── Main.java
-│   │           ├── dao/
-│   │           │   └── DataStore.java
-│   │           ├── model/
-│   │           │   ├── Device.java
-│   │           │   ├── Employee.java
-│   │           │   └── Assignment.java
-│   │           └── ui/
-│   │               ├── MainFrame.java
-│   │               ├── DashboardPanel.java
-│   │               └── DeviceManagementPanel.java
+│   │   └── quanlythietbi/
+│   │       ├── connector/         # Database connection management
+│   │       ├── controller/        # Business logic controllers
+│   │       ├── entity/           # Data models/records
+│   │       ├── enums/            # Enumerations
+│   │       ├── service/          # Service layer
+│   │       │   ├── adapter/      # Adapter pattern implementations
+│   │       │   ├── assignment/   # Device assignment services
+│   │       │   └── deviceinfo/   # Device information services
+│   │       ├── ui/              # Swing UI components
+│   │       └── DeviceManagementApplication.java
 │   └── resources/
+│       └── schema.sql           # Database schema
 └── test/
     └── java/
 ```
 
-## Features in Detail
+## Building and Running
 
-### Device Management
-- Add new devices
-- Edit device information
-- Delete devices
-- Track device status
-- Manage device categories
+### Prerequisites
+- Java 17 or higher
+- Maven 3.6 or higher
 
-### Assignment Management
-- Assign devices to employees
-- Track assignment duration
-- Monitor assignment expiration
-- Handle device returns
+### Build
+```bash
+mvn clean package
+```
 
-### Dashboard
-- Total devices count
-- Assigned devices count
-- Available devices count
-- Devices in maintenance
-- Expired assignments
-- Assignments expiring soon
+### Run
+```bash
+java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
+```
 
-### Reports
-- Generate PDF reports
-- Export data to Excel
-- Device history tracking
-- Assignment history
+## Implementation Details
+
+### User Interface Design
+- Dark theme sidebar (RGB: 51,51,51)
+- Card-based layouts
+- Responsive design
+- Interactive elements with hover effects
+- Clean typography
+- Proper spacing and padding
+
+### Technical Features
+- Custom connection pooling with BlockingQueue
+- Comprehensive error logging
+- H2 database with schema management
+- Clean architecture with DAO pattern
+- Service layer abstraction
 
 ## Contributing
 
