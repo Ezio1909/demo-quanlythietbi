@@ -10,6 +10,10 @@ public record DeviceInfoRecord(
     String status
 ) {
     public DeviceInfoRecord {
-        Objects.requireNonNull(id);
+        // id can be null for new devices
+        Objects.requireNonNull(name, "Device name cannot be null");
+        Objects.requireNonNull(type, "Device type cannot be null");
+        Objects.requireNonNull(serialNumber, "Serial number cannot be null");
+        Objects.requireNonNull(status, "Status cannot be null");
     }
 }

@@ -1,111 +1,70 @@
 package quanlythietbi.ui;
 
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import javax.swing.*;
+import java.awt.*;
 
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 
 public class MainFrame extends JFrame {
-    private JPanel contentPanel;
-    private JPanel sidebarPanel;
-    private CardLayout cardLayout;
     private final DeviceManagementAdapter deviceAdapter;
     private final AssignmentManagementAdapter assignmentAdapter;
+    private final MaintenanceManagementAdapter maintenanceAdapter;
+    private CardLayout cardLayout;
+    private JPanel contentPanel;
 
-    private static final String DASHBOARD = "Dashboard";
-    private static final String DEVICES = "Devices";
-    private static final String ASSIGNMENTS = "Assignments";
-    private static final String MAINTENANCE = "Maintenance";
-    private static final String REPORTS = "Reports";
-    private static final String SETTINGS = "Settings";
-
-    public MainFrame(DeviceManagementAdapter deviceAdapter, AssignmentManagementAdapter assignmentAdapter) {
+    public MainFrame(
+        DeviceManagementAdapter deviceAdapter, 
+        AssignmentManagementAdapter assignmentAdapter,
+        MaintenanceManagementAdapter maintenanceAdapter
+    ) {
         this.deviceAdapter = deviceAdapter;
         this.assignmentAdapter = assignmentAdapter;
+        this.maintenanceAdapter = maintenanceAdapter;
         initializeFrame();
-        createSidebar();
-        createContentPanel();
-        addPanels();
     }
 
     private void initializeFrame() {
         setTitle("Device Management System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1200, 800);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
-    }
+        setPreferredSize(new Dimension(1200, 800));
 
-    private void createSidebar() {
-        sidebarPanel = new JPanel();
-        sidebarPanel.setLayout(new BoxLayout(sidebarPanel, BoxLayout.Y_AXIS));
-        sidebarPanel.setBackground(new Color(51, 51, 51));
-        sidebarPanel.setPreferredSize(new Dimension(200, getHeight()));
-
-        addSidebarButton(DASHBOARD);
-        addSidebarButton(DEVICES);
-        addSidebarButton(ASSIGNMENTS);
-        addSidebarButton(MAINTENANCE);
-        addSidebarButton(REPORTS);
-        addSidebarButton(SETTINGS);
-
-        add(sidebarPanel, BorderLayout.WEST);
-    }
-
-    private void addSidebarButton(String name) {
-        JButton button = new JButton(name);
-        button.setAlignmentX(Component.CENTER_ALIGNMENT);
-        button.setMaximumSize(new Dimension(180, 40));
-        button.setFont(new Font("Arial", Font.PLAIN, 14));
-        button.setForeground(Color.WHITE);
-        button.setBackground(new Color(51, 51, 51));
-        button.setBorderPainted(false);
-        button.setFocusPainted(false);
-        button.addActionListener(e -> switchPanel(name));
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(75, 75, 75));
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(51, 51, 51));
-            }
-        });
-        sidebarPanel.add(Box.createRigidArea(new Dimension(0, 10)));
-        sidebarPanel.add(button);
-    }
-
-    private void createContentPanel() {
-        contentPanel = new JPanel();
+        // Create main container with BorderLayout
+        JPanel mainContainer = new JPanel(new BorderLayout());
+        
+        // Create card layout and content panel
         cardLayout = new CardLayout();
-        contentPanel.setLayout(cardLayout);
-        add(contentPanel, BorderLayout.CENTER);
-    }
+        contentPanel = new JPanel(cardLayout);
+        
+        // Create sidebar
+        SidebarPanel sidebar = new SidebarPanel(contentPanel, cardLayout);
+        
+        // Create and add content panels
+        DeviceManagementPanel devicePanel = new DeviceManagementPanel(deviceAdapter);
+        AssignmentPanel assignmentPanel = new AssignmentPanel(assignmentAdapter, deviceAdapter);
+        MaintenancePanel maintenancePanel = new MaintenancePanel(maintenanceAdapter, deviceAdapter);
+        DashboardPanel dashboardPanel = new DashboardPanel();
+        ReportsPanel reportsPanel = new ReportsPanel();
+        SettingsPanel settingsPanel = new SettingsPanel();
 
-    private void addPanels() {
-        // Add all panels
-        contentPanel.add(new DashboardPanel(), DASHBOARD);
-        contentPanel.add(new DeviceManagementPanel(deviceAdapter), DEVICES);
-        contentPanel.add(new AssignmentPanel(assignmentAdapter), ASSIGNMENTS);
-        contentPanel.add(new MaintenancePanel(), MAINTENANCE);
-        contentPanel.add(new ReportsPanel(), REPORTS);
-        contentPanel.add(new SettingsPanel(), SETTINGS);
+        contentPanel.add(devicePanel, "devices");
+        contentPanel.add(assignmentPanel, "assignments");
+        contentPanel.add(maintenancePanel, "maintenance");
+        contentPanel.add(dashboardPanel, "dashboard");
+        contentPanel.add(reportsPanel, "reports");
+        contentPanel.add(settingsPanel, "settings");
 
-        // Show dashboard by default
-        cardLayout.show(contentPanel, DASHBOARD);
-    }
+        // Add components to main container
+        mainContainer.add(sidebar, BorderLayout.WEST);
+        mainContainer.add(contentPanel, BorderLayout.CENTER);
 
-    private void switchPanel(String name) {
-        cardLayout.show(contentPanel, name);
+        // Add main container to frame
+        add(mainContainer);
+
+        // Set minimum size and pack
+        setMinimumSize(new Dimension(1000, 600));
+        pack();
+        setLocationRelativeTo(null);
     }
 } 

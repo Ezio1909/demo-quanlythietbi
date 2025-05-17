@@ -12,10 +12,13 @@ import quanlythietbi.connector.PooledConnectionManagerImpl;
 import quanlythietbi.enums.DBType;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 import quanlythietbi.service.assignment.DeviceAssignmentDAO;
 import quanlythietbi.service.assignment.DeviceAssignmentDAOImpl;
 import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
 import quanlythietbi.service.deviceinfo.DeviceInfoDAOImpl;
+import quanlythietbi.service.maintenance.MaintenanceDAO;
+import quanlythietbi.service.maintenance.MaintenanceDAOImpl;
 import quanlythietbi.ui.MainFrame;
 
 public class DeviceManagementApplication {
@@ -34,15 +37,18 @@ public class DeviceManagementApplication {
                 // Set up database connection
                 IConnectionManager connectionManager = new PooledConnectionManagerImpl(DBType.H2, 4);
                 
-                // Set up DAOs and adapters
+                // Set up DAOs
                 DeviceInfoDAO deviceDAO = new DeviceInfoDAOImpl(connectionManager);
                 DeviceAssignmentDAO assignmentDAO = new DeviceAssignmentDAOImpl(connectionManager);
+                MaintenanceDAO maintenanceDAO = new MaintenanceDAOImpl(connectionManager);
                 
+                // Set up adapters
                 DeviceManagementAdapter deviceAdapter = new DeviceManagementAdapter(deviceDAO);
                 AssignmentManagementAdapter assignmentAdapter = new AssignmentManagementAdapter(assignmentDAO);
+                MaintenanceManagementAdapter maintenanceAdapter = new MaintenanceManagementAdapter(maintenanceDAO);
                 
                 // Create and show main frame
-                MainFrame frame = new MainFrame(deviceAdapter, assignmentAdapter);
+                MainFrame frame = new MainFrame(deviceAdapter, assignmentAdapter, maintenanceAdapter);
                 frame.setVisible(true);
             } catch (Exception e) {
                 logger.error("Failed to start application", e);
