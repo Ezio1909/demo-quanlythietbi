@@ -15,11 +15,13 @@ public class DatabaseInitializer {
     public static void initializeDatabase(Connection connection) {
         try {
             // Read schema.sql from resources
-            String schema = new BufferedReader(
-                new InputStreamReader(
-                    DatabaseInitializer.class.getClassLoader().getResourceAsStream("schema.sql")
-                )
-            ).lines().collect(Collectors.joining("\n"));
+            String schema;
+            try (BufferedReader reader = new BufferedReader(
+                    new InputStreamReader(
+                        DatabaseInitializer.class.getClassLoader().getResourceAsStream("schema.sql")
+                    ))) {
+                schema = reader.lines().collect(Collectors.joining("\n"));
+            }
 
             // Execute schema
             try (Statement stmt = connection.createStatement()) {

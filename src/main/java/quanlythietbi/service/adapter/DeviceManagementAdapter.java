@@ -5,10 +5,14 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quanlythietbi.entity.DeviceInfoRecord;
 import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
 
 public class DeviceManagementAdapter {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceManagementAdapter.class);
     private final DeviceInfoDAO deviceDAO;
 
     public DeviceManagementAdapter(DeviceInfoDAO deviceDAO) {
@@ -19,7 +23,7 @@ public class DeviceManagementAdapter {
         try {
             return deviceDAO.findAll();
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get all devices", e);
             return Collections.emptyList();
         }
     }
@@ -28,23 +32,16 @@ public class DeviceManagementAdapter {
         try {
             return deviceDAO.findById(id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get device with id: {}", id, e);
             return Optional.empty();
         }
     }
 
-    public void addDevice(String name, String type, String serialNumber) {
+    public void addDevice(DeviceInfoRecord device) {
         try {
-            DeviceInfoRecord newDevice = new DeviceInfoRecord(
-                null, // ID will be assigned by database
-                name,
-                type,
-                serialNumber,
-                "Available" // Default status for new devices
-            );
-            deviceDAO.insert(newDevice);
+            deviceDAO.insert(device);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to add device: {}", device, e);
         }
     }
 
@@ -52,7 +49,7 @@ public class DeviceManagementAdapter {
         try {
             deviceDAO.update(device);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to update device: {}", device, e);
         }
     }
 
@@ -60,7 +57,7 @@ public class DeviceManagementAdapter {
         try {
             deviceDAO.deleteById(id);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to delete device with id: {}", id, e);
         }
     }
 } 
