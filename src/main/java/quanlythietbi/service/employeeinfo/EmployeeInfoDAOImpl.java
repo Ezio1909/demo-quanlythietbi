@@ -1,13 +1,13 @@
 package quanlythietbi.service.employeeinfo;
 
-import quanlythietbi.connector.IConnectionManager;
-import quanlythietbi.entity.EmployeeInfoRecord;
-
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import quanlythietbi.connector.IConnectionManager;
+import quanlythietbi.entity.EmployeeInfoRecord;
 
 public class EmployeeInfoDAOImpl implements EmployeeInfoDAO {
 
@@ -17,7 +17,7 @@ public class EmployeeInfoDAOImpl implements EmployeeInfoDAO {
         this.connectionManager = connectionManager;
     }
     
-    private static final Integer COL_EMPLOYEE_ID = "id";
+    private static final String COL_EMPLOYEE_ID = "id";
     private static final String COL_NAME = "name";
     private static final String COL_EMAIL = "email";
     private static final String COL_DEPARTMENT = "department";

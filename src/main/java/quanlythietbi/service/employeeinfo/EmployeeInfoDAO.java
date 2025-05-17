@@ -1,9 +1,9 @@
 package quanlythietbi.service.employeeinfo;
 
-import quanlythietbi.entity.EmployeeInfoRecord;
-
 import java.sql.SQLException;
 import java.util.List;
+
+import quanlythietbi.entity.EmployeeInfoRecord;
 
 public interface EmployeeInfoDAO {
     List<EmployeeInfoRecord> findAll() throws SQLException;
