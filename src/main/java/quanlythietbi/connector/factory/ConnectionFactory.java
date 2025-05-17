@@ -1,9 +1,9 @@
 package quanlythietbi.connector.factory;
 
-import quanlythietbi.enums.DBType;
-
 import java.sql.Connection;
 import java.sql.SQLException;
+
+import quanlythietbi.enums.DBType;
 
 public class ConnectionFactory implements IConnectionFactory {
 
@@ -13,6 +13,7 @@ public class ConnectionFactory implements IConnectionFactory {
         this.dbType = dbType;
     }
 
+    @Override
     public Connection getConnection() throws SQLException {
         IConnectionFactory factory = null;
         switch (dbType) {
