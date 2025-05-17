@@ -4,6 +4,9 @@ import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quanlythietbi.connector.IConnectionManager;
 import quanlythietbi.connector.PooledConnectionManagerImpl;
 import quanlythietbi.enums.DBType;
@@ -16,12 +19,14 @@ import quanlythietbi.service.deviceinfo.DeviceInfoDAOImpl;
 import quanlythietbi.ui.MainFrame;
 
 public class DeviceManagementApplication {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceManagementApplication.class);
+
     public static void main(String[] args) {
         try {
             // Set system look and feel
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to set system look and feel", e);
         }
 
         SwingUtilities.invokeLater(() -> {
@@ -40,7 +45,7 @@ public class DeviceManagementApplication {
                 MainFrame frame = new MainFrame(deviceAdapter, assignmentAdapter);
                 frame.setVisible(true);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("Failed to start application", e);
                 JOptionPane.showMessageDialog(null,
                     "Error starting application: " + e.getMessage(),
                     "Error",
