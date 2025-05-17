@@ -1,17 +1,11 @@
 package quanlythietbi.ui;
 
-import java.awt.BorderLayout;
-import java.awt.FlowLayout;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
-import javax.swing.JTextField;
+import java.awt.*;
+import java.awt.event.*;
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import quanlythietbi.entity.DeviceInfoRecord;
@@ -23,6 +17,7 @@ public class DeviceManagementPanel extends JPanel {
     private DefaultTableModel tableModel;
     private JButton addButton, editButton, deleteButton;
     private JTextField searchField;
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public DeviceManagementPanel(DeviceManagementAdapter adapter) {
         this.adapter = adapter;
@@ -51,11 +46,9 @@ public class DeviceManagementPanel extends JPanel {
 
         // Table
         String[] columns = {
-            "ID", 
-            "Name", 
-            "Type", 
-            "Serial Number", 
-            "Status"
+            "ID", "Name", "Type", "Serial Number", "Status",
+            "Model", "Manufacturer", "Location", "Department",
+            "Condition", "Asset Tag"
         };
         
         tableModel = new DefaultTableModel(columns, 0) {
@@ -86,39 +79,260 @@ public class DeviceManagementPanel extends JPanel {
         refreshDeviceTable();
     }
 
+    private JPanel createBasicInfoPanel(JTextField nameField, JTextField typeField, 
+            JTextField serialField, JComboBox<String> statusCombo, 
+            JTextField modelField, JTextField manufacturerField) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        // Add fields
+        panel.add(new JLabel("Name:*"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Type:*"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Serial Number:*"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Status:*"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Model:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Manufacturer:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(nameField, gbc);
+        gbc.gridy++;
+        panel.add(typeField, gbc);
+        gbc.gridy++;
+        panel.add(serialField, gbc);
+        gbc.gridy++;
+        panel.add(statusCombo, gbc);
+        gbc.gridy++;
+        panel.add(modelField, gbc);
+        gbc.gridy++;
+        panel.add(manufacturerField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createPurchaseInfoPanel(JTextField purchaseDateField, 
+            JTextField purchasePriceField, JTextField supplierField, 
+            JTextField warrantyExpiryField) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        panel.add(new JLabel("Purchase Date:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Purchase Price:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Supplier:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Warranty Expiry:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(purchaseDateField, gbc);
+        gbc.gridy++;
+        panel.add(purchasePriceField, gbc);
+        gbc.gridy++;
+        panel.add(supplierField, gbc);
+        gbc.gridy++;
+        panel.add(warrantyExpiryField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createAssetInfoPanel(JTextField assetTagField, JTextField locationField,
+            JTextField departmentField, JTextField categoryField) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        panel.add(new JLabel("Asset Tag:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Location:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Department:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Category:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(assetTagField, gbc);
+        gbc.gridy++;
+        panel.add(locationField, gbc);
+        gbc.gridy++;
+        panel.add(departmentField, gbc);
+        gbc.gridy++;
+        panel.add(categoryField, gbc);
+
+        return panel;
+    }
+
+    private JPanel createLifecyclePanel(JTextField lastInspectionField, 
+            JTextField nextInspectionField, JTextField endOfLifeField,
+            JComboBox<String> conditionCombo, JTextArea notesArea) {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(5, 5, 5, 5);
+
+        panel.add(new JLabel("Last Inspection:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Next Inspection:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("End of Life:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Condition:"), gbc);
+        gbc.gridy++;
+        panel.add(new JLabel("Notes:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
+        panel.add(lastInspectionField, gbc);
+        gbc.gridy++;
+        panel.add(nextInspectionField, gbc);
+        gbc.gridy++;
+        panel.add(endOfLifeField, gbc);
+        gbc.gridy++;
+        panel.add(conditionCombo, gbc);
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weighty = 1.0;
+        panel.add(new JScrollPane(notesArea), gbc);
+
+        return panel;
+    }
+
     private void showAddDeviceDialog() {
-        JTextField nameField = new JTextField();
-        JTextField typeField = new JTextField();
-        JTextField serialField = new JTextField();
+        // Create all form fields
+        JTextField nameField = new JTextField(20);
+        JTextField typeField = new JTextField(20);
+        JTextField serialField = new JTextField(20);
+        JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Available", "In Use", "Maintenance", "Retired"});
+        JTextField modelField = new JTextField(20);
+        JTextField manufacturerField = new JTextField(20);
+        
+        JTextField purchaseDateField = new JTextField(10);
+        JTextField purchasePriceField = new JTextField(10);
+        JTextField supplierField = new JTextField(20);
+        JTextField warrantyExpiryField = new JTextField(10);
+        
+        JTextField assetTagField = new JTextField(20);
+        JTextField locationField = new JTextField(20);
+        JTextField departmentField = new JTextField(20);
+        JTextField categoryField = new JTextField(20);
+        
+        JTextField lastInspectionField = new JTextField(10);
+        JTextField nextInspectionField = new JTextField(10);
+        JTextField endOfLifeField = new JTextField(10);
+        JComboBox<String> conditionCombo = new JComboBox<>(new String[]{"New", "Good", "Fair", "Poor"});
+        JTextArea notesArea = new JTextArea(4, 30);
 
-        Object[] message = {
-            "Device Name:", nameField,
-            "Device Type:", typeField,
-            "Serial Number:", serialField
-        };
+        // Add date format tooltips
+        purchaseDateField.setToolTipText("Format: YYYY-MM-DD");
+        warrantyExpiryField.setToolTipText("Format: YYYY-MM-DD");
+        lastInspectionField.setToolTipText("Format: YYYY-MM-DD");
+        nextInspectionField.setToolTipText("Format: YYYY-MM-DD");
+        endOfLifeField.setToolTipText("Format: YYYY-MM-DD");
 
-        int option = JOptionPane.showConfirmDialog(this, message, "Add New Device", 
+        // Create tabbed pane
+        JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.addTab("Basic Info", createBasicInfoPanel(nameField, typeField, serialField, statusCombo, modelField, manufacturerField));
+        tabbedPane.addTab("Purchase", createPurchaseInfoPanel(purchaseDateField, purchasePriceField, supplierField, warrantyExpiryField));
+        tabbedPane.addTab("Asset", createAssetInfoPanel(assetTagField, locationField, departmentField, categoryField));
+        tabbedPane.addTab("Lifecycle", createLifecyclePanel(lastInspectionField, nextInspectionField, endOfLifeField, conditionCombo, notesArea));
+
+        int option = JOptionPane.showConfirmDialog(this, tabbedPane, "Add New Device", 
             JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
         if (option == JOptionPane.OK_OPTION) {
-            String name = nameField.getText().trim();
-            String type = typeField.getText().trim();
-            String serial = serialField.getText().trim();
+            try {
+                // Validate required fields
+                String name = nameField.getText().trim();
+                String type = typeField.getText().trim();
+                String serial = serialField.getText().trim();
+                
+                if (name.isEmpty() || type.isEmpty() || serial.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Name, Type, and Serial Number are required", 
+                        "Validation Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
 
-            if (!name.isEmpty() && !type.isEmpty() && !serial.isEmpty()) {
+                // Parse dates
+                LocalDate purchaseDate = purchaseDateField.getText().trim().isEmpty() ? null :
+                    LocalDate.parse(purchaseDateField.getText().trim(), DATE_FORMATTER);
+                LocalDate warrantyExpiry = warrantyExpiryField.getText().trim().isEmpty() ? null :
+                    LocalDate.parse(warrantyExpiryField.getText().trim(), DATE_FORMATTER);
+                LocalDate lastInspection = lastInspectionField.getText().trim().isEmpty() ? null :
+                    LocalDate.parse(lastInspectionField.getText().trim(), DATE_FORMATTER);
+                LocalDate nextInspection = nextInspectionField.getText().trim().isEmpty() ? null :
+                    LocalDate.parse(nextInspectionField.getText().trim(), DATE_FORMATTER);
+                LocalDate endOfLife = endOfLifeField.getText().trim().isEmpty() ? null :
+                    LocalDate.parse(endOfLifeField.getText().trim(), DATE_FORMATTER);
+
+                // Parse purchase price
+                BigDecimal purchasePrice = purchasePriceField.getText().trim().isEmpty() ? null :
+                    new BigDecimal(purchasePriceField.getText().trim());
+
                 DeviceInfoRecord newDevice = new DeviceInfoRecord(
                     null, // ID will be assigned by database
                     name,
                     type,
                     serial,
-                    "Available" // Default status for new devices
+                    statusCombo.getSelectedItem().toString(),
+                    purchaseDate,
+                    purchasePrice,
+                    supplierField.getText().trim(),
+                    warrantyExpiry,
+                    modelField.getText().trim(),
+                    manufacturerField.getText().trim(),
+                    null, // specifications
+                    null, // firmware version
+                    assetTagField.getText().trim(),
+                    locationField.getText().trim(),
+                    departmentField.getText().trim(),
+                    categoryField.getText().trim(),
+                    lastInspection,
+                    nextInspection,
+                    endOfLife,
+                    conditionCombo.getSelectedItem().toString(),
+                    notesArea.getText().trim(),
+                    null, // created_at (set by database)
+                    null, // updated_at (set by database)
+                    "system", // created_by
+                    "system"  // last_modified_by
                 );
+
                 adapter.addDevice(newDevice);
                 refreshDeviceTable();
-            } else {
+            } catch (Exception e) {
                 JOptionPane.showMessageDialog(this, 
-                    "All fields are required", 
-                    "Validation Error", 
+                    "Error: " + e.getMessage(), 
+                    "Error", 
                     JOptionPane.ERROR_MESSAGE);
             }
         }
@@ -136,38 +350,121 @@ public class DeviceManagementPanel extends JPanel {
 
         Integer deviceId = (Integer) tableModel.getValueAt(selectedRow, 0);
         adapter.getDevice(deviceId).ifPresent(device -> {
-            JTextField nameField = new JTextField(device.name());
-            JTextField typeField = new JTextField(device.type());
-            JTextField serialField = new JTextField(device.serialNumber());
+            // Create and populate form fields
+            JTextField nameField = new JTextField(device.name(), 20);
+            JTextField typeField = new JTextField(device.type(), 20);
+            JTextField serialField = new JTextField(device.serialNumber(), 20);
+            JComboBox<String> statusCombo = new JComboBox<>(new String[]{"Available", "In Use", "Maintenance", "Retired"});
+            statusCombo.setSelectedItem(device.status());
+            JTextField modelField = new JTextField(device.model(), 20);
+            JTextField manufacturerField = new JTextField(device.manufacturer(), 20);
+            
+            JTextField purchaseDateField = new JTextField(device.purchaseDate() != null ? 
+                device.purchaseDate().format(DATE_FORMATTER) : "", 10);
+            JTextField purchasePriceField = new JTextField(device.purchasePrice() != null ? 
+                device.purchasePrice().toString() : "", 10);
+            JTextField supplierField = new JTextField(device.supplier(), 20);
+            JTextField warrantyExpiryField = new JTextField(device.warrantyExpiry() != null ? 
+                device.warrantyExpiry().format(DATE_FORMATTER) : "", 10);
+            
+            JTextField assetTagField = new JTextField(device.assetTag(), 20);
+            JTextField locationField = new JTextField(device.location(), 20);
+            JTextField departmentField = new JTextField(device.department(), 20);
+            JTextField categoryField = new JTextField(device.category(), 20);
+            
+            JTextField lastInspectionField = new JTextField(device.lastInspectionDate() != null ? 
+                device.lastInspectionDate().format(DATE_FORMATTER) : "", 10);
+            JTextField nextInspectionField = new JTextField(device.nextInspectionDate() != null ? 
+                device.nextInspectionDate().format(DATE_FORMATTER) : "", 10);
+            JTextField endOfLifeField = new JTextField(device.endOfLifeDate() != null ? 
+                device.endOfLifeDate().format(DATE_FORMATTER) : "", 10);
+            JComboBox<String> conditionCombo = new JComboBox<>(new String[]{"New", "Good", "Fair", "Poor"});
+            conditionCombo.setSelectedItem(device.condition());
+            JTextArea notesArea = new JTextArea(device.notes(), 4, 30);
 
-            Object[] message = {
-                "Device Name:", nameField,
-                "Device Type:", typeField,
-                "Serial Number:", serialField
-            };
+            // Add date format tooltips
+            purchaseDateField.setToolTipText("Format: YYYY-MM-DD");
+            warrantyExpiryField.setToolTipText("Format: YYYY-MM-DD");
+            lastInspectionField.setToolTipText("Format: YYYY-MM-DD");
+            nextInspectionField.setToolTipText("Format: YYYY-MM-DD");
+            endOfLifeField.setToolTipText("Format: YYYY-MM-DD");
 
-            int option = JOptionPane.showConfirmDialog(this, message, "Edit Device", 
+            // Create tabbed pane
+            JTabbedPane tabbedPane = new JTabbedPane();
+            tabbedPane.addTab("Basic Info", createBasicInfoPanel(nameField, typeField, serialField, statusCombo, modelField, manufacturerField));
+            tabbedPane.addTab("Purchase", createPurchaseInfoPanel(purchaseDateField, purchasePriceField, supplierField, warrantyExpiryField));
+            tabbedPane.addTab("Asset", createAssetInfoPanel(assetTagField, locationField, departmentField, categoryField));
+            tabbedPane.addTab("Lifecycle", createLifecyclePanel(lastInspectionField, nextInspectionField, endOfLifeField, conditionCombo, notesArea));
+
+            int option = JOptionPane.showConfirmDialog(this, tabbedPane, "Edit Device", 
                 JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
 
             if (option == JOptionPane.OK_OPTION) {
-                String name = nameField.getText().trim();
-                String type = typeField.getText().trim();
-                String serial = serialField.getText().trim();
+                try {
+                    // Validate required fields
+                    String name = nameField.getText().trim();
+                    String type = typeField.getText().trim();
+                    String serial = serialField.getText().trim();
+                    
+                    if (name.isEmpty() || type.isEmpty() || serial.isEmpty()) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Name, Type, and Serial Number are required", 
+                            "Validation Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
-                if (!name.isEmpty() && !type.isEmpty() && !serial.isEmpty()) {
+                    // Parse dates
+                    LocalDate purchaseDate = purchaseDateField.getText().trim().isEmpty() ? null :
+                        LocalDate.parse(purchaseDateField.getText().trim(), DATE_FORMATTER);
+                    LocalDate warrantyExpiry = warrantyExpiryField.getText().trim().isEmpty() ? null :
+                        LocalDate.parse(warrantyExpiryField.getText().trim(), DATE_FORMATTER);
+                    LocalDate lastInspection = lastInspectionField.getText().trim().isEmpty() ? null :
+                        LocalDate.parse(lastInspectionField.getText().trim(), DATE_FORMATTER);
+                    LocalDate nextInspection = nextInspectionField.getText().trim().isEmpty() ? null :
+                        LocalDate.parse(nextInspectionField.getText().trim(), DATE_FORMATTER);
+                    LocalDate endOfLife = endOfLifeField.getText().trim().isEmpty() ? null :
+                        LocalDate.parse(endOfLifeField.getText().trim(), DATE_FORMATTER);
+
+                    // Parse purchase price
+                    BigDecimal purchasePrice = purchasePriceField.getText().trim().isEmpty() ? null :
+                        new BigDecimal(purchasePriceField.getText().trim());
+
                     DeviceInfoRecord updatedDevice = new DeviceInfoRecord(
                         device.id(),
                         name,
                         type,
                         serial,
-                        device.status()
+                        statusCombo.getSelectedItem().toString(),
+                        purchaseDate,
+                        purchasePrice,
+                        supplierField.getText().trim(),
+                        warrantyExpiry,
+                        modelField.getText().trim(),
+                        manufacturerField.getText().trim(),
+                        device.specifications(), // keep existing specs
+                        device.firmwareVersion(), // keep existing firmware
+                        assetTagField.getText().trim(),
+                        locationField.getText().trim(),
+                        departmentField.getText().trim(),
+                        categoryField.getText().trim(),
+                        lastInspection,
+                        nextInspection,
+                        endOfLife,
+                        conditionCombo.getSelectedItem().toString(),
+                        notesArea.getText().trim(),
+                        device.createdAt(), // keep original creation time
+                        null, // updated_at will be set by database
+                        device.createdBy(), // keep original creator
+                        "system" // last_modified_by
                     );
+
                     adapter.updateDevice(updatedDevice);
                     refreshDeviceTable();
-                } else {
+                } catch (Exception e) {
                     JOptionPane.showMessageDialog(this, 
-                        "All fields are required", 
-                        "Validation Error", 
+                        "Error: " + e.getMessage(), 
+                        "Error", 
                         JOptionPane.ERROR_MESSAGE);
                 }
             }
@@ -204,9 +501,15 @@ public class DeviceManagementPanel extends JPanel {
                 device.name(),
                 device.type(),
                 device.serialNumber(),
-                device.status()
+                device.status(),
+                device.model(),
+                device.manufacturer(),
+                device.location(),
+                device.department(),
+                device.condition(),
+                device.assetTag()
             };
             tableModel.addRow(row);
         }
     }
-} 
+}
