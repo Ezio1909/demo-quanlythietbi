@@ -12,11 +12,14 @@ public record DeviceAssignmentRecord(
     String department,
     LocalDateTime assignedAt,
     LocalDateTime returnedAt,
+    LocalDateTime expirationDate,
     String status
 ) {
     public DeviceAssignmentRecord {
         // id can be null for new records
         Objects.requireNonNull(employeeId, "Employee ID cannot be null");
         Objects.requireNonNull(deviceId, "Device ID cannot be null");
+        Objects.requireNonNull(assignedAt, "Assigned date cannot be null");
+        Objects.requireNonNull(expirationDate, "Expiration date cannot be null");
     }
 } 

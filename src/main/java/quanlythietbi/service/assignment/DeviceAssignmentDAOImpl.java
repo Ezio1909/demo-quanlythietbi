@@ -23,6 +23,7 @@ public class DeviceAssignmentDAOImpl implements DeviceAssignmentDAO {
     private static final String COL_DEPARTMENT = "department";
     private static final String COL_ASSIGNED_AT = "assigned_at";
     private static final String COL_RETURNED_AT = "returned_at";
+    private static final String COL_EXPIRATION_DATE = "expiration_date";
     private static final String COL_STATUS = "status";
 
     public DeviceAssignmentDAOImpl(IConnectionManager connectionManager) {
@@ -130,13 +131,14 @@ public class DeviceAssignmentDAOImpl implements DeviceAssignmentDAO {
         connectionManager.doTask(conn -> {
             PreparedStatement stmt = conn.prepareStatement("""
                 INSERT INTO device_assignments 
-                (employee_id, device_id, assigned_at, status) 
-                VALUES (?, ?, ?, ?)
+                (employee_id, device_id, assigned_at, expiration_date, status) 
+                VALUES (?, ?, ?, ?, ?)
             """);
             stmt.setInt(1, assignment.employeeId());
             stmt.setInt(2, assignment.deviceId());
-            stmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
-            stmt.setString(4, "Active");
+            stmt.setTimestamp(3, Timestamp.valueOf(assignment.assignedAt()));
+            stmt.setTimestamp(4, Timestamp.valueOf(assignment.expirationDate()));
+            stmt.setString(5, "Active");
             stmt.executeUpdate();
             return null;
         });
@@ -196,6 +198,7 @@ public class DeviceAssignmentDAOImpl implements DeviceAssignmentDAO {
             Optional.ofNullable(rs.getTimestamp(COL_RETURNED_AT))
                 .map(Timestamp::toLocalDateTime)
                 .orElse(null),
+            rs.getTimestamp(COL_EXPIRATION_DATE).toLocalDateTime(),
             rs.getString(COL_STATUS)
         );
     }

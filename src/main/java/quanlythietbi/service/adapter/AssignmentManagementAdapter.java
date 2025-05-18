@@ -1,6 +1,7 @@
 package quanlythietbi.service.adapter;
 
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -106,6 +107,10 @@ public class AssignmentManagementAdapter {
                 ));
             }
 
+            // Set assignment dates
+            LocalDateTime now = LocalDateTime.now();
+            LocalDateTime expirationDate = now.plusYears(1);
+
             // Create the assignment
             DeviceAssignmentRecord assignment = new DeviceAssignmentRecord(
                 null,
@@ -114,8 +119,9 @@ public class AssignmentManagementAdapter {
                 device.get().name(),
                 employee.name(),
                 employee.department(),
+                now,
                 null,
-                null,
+                expirationDate,
                 "Active"
             );
             assignmentDAO.insert(assignment);

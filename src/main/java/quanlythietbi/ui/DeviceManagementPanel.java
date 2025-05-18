@@ -7,48 +7,75 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import quanlythietbi.entity.DeviceInfoRecord;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.ui.components.DeviceFilterPanel;
+import quanlythietbi.ui.components.SimpleDocumentListener;
+import quanlythietbi.ui.components.SortableTable;
 
 public class DeviceManagementPanel extends JPanel {
-    private final DeviceManagementAdapter adapter;
-    private JTable deviceTable;
-    private DefaultTableModel tableModel;
-    private JButton addButton, editButton, deleteButton;
-    private JTextField searchField;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private final DeviceManagementAdapter adapter;
+    private SortableTable deviceTable;
+    private DefaultTableModel tableModel;
+    private JTextField searchField;
 
     public DeviceManagementPanel(DeviceManagementAdapter adapter) {
         this.adapter = adapter;
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
         initializeComponents();
+        refreshDeviceTable();
     }
 
     private void initializeComponents() {
-        // Create toolbar
-        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        
-        // Search field
+        // Top panel with search and buttons
+        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+
+        // Search panel
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        searchPanel.add(new JLabel("Search by Device Name:"));
         searchField = new JTextField(20);
-        searchField.setToolTipText("Search devices...");
-        toolBar.add(new JLabel("Search: "));
-        toolBar.add(searchField);
+        searchField.getDocument().addDocumentListener(new SimpleDocumentListener(
+            () -> deviceTable.addFilter("Name", searchField.getText())
+        ));
+        searchPanel.add(searchField);
+        topPanel.add(searchPanel, BorderLayout.WEST);
 
-        // Buttons
-        addButton = new JButton("Add Device");
-        editButton = new JButton("Edit Device");
-        deleteButton = new JButton("Delete Device");
+        // Buttons panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton addButton = new JButton("Add Device");
+        JButton editButton = new JButton("Edit Device");
+        JButton deleteButton = new JButton("Delete Device");
+        
+        addButton.addActionListener(e -> showAddDeviceDialog());
+        editButton.addActionListener(e -> showEditDeviceDialog());
+        deleteButton.addActionListener(e -> deleteSelectedDevice());
+        
+        buttonPanel.add(addButton);
+        buttonPanel.add(editButton);
+        buttonPanel.add(deleteButton);
+        topPanel.add(buttonPanel, BorderLayout.EAST);
 
-        toolBar.add(addButton);
-        toolBar.add(editButton);
-        toolBar.add(deleteButton);
+        add(topPanel, BorderLayout.NORTH);
 
-        // Table
+        // Initialize table
         String[] columns = {
-            "ID", "Name", "Type", "Serial Number", "Status",
-            "Model", "Manufacturer", "Location", "Department",
-            "Condition", "Asset Tag"
+            "ID",
+            "Name",
+            "Type",
+            "Serial Number",
+            "Status",
+            "Model",
+            "Manufacturer",
+            "Location",
+            "Department",
+            "Condition",
+            "Asset Tag"
         };
         
         tableModel = new DefaultTableModel(columns, 0) {
@@ -57,26 +84,41 @@ public class DeviceManagementPanel extends JPanel {
                 return false;
             }
         };
-        deviceTable = new JTable(tableModel);
+        deviceTable = new SortableTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(deviceTable);
+        
+        // Create filter panel
+        List<DeviceInfoRecord> devices = adapter.getAllDevices();
+        Set<String> statuses = new HashSet<>();
+        Set<String> conditions = new HashSet<>();
+        Set<String> departments = new HashSet<>();
+        Set<String> locations = new HashSet<>();
+        
+        for (DeviceInfoRecord device : devices) {
+            if (device.status() != null) statuses.add(device.status());
+            if (device.condition() != null) conditions.add(device.condition());
+            if (device.department() != null) departments.add(device.department());
+            if (device.location() != null) locations.add(device.location());
+        }
 
-        // Add components
-        add(toolBar, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        DeviceFilterPanel filterPanel = new DeviceFilterPanel(
+            statuses.toArray(new String[0]),
+            conditions.toArray(new String[0]),
+            departments.toArray(new String[0]),
+            locations.toArray(new String[0]),
+            name -> deviceTable.addFilter("Name", name),
+            status -> deviceTable.addFilter("Status", status),
+            condition -> deviceTable.addFilter("Condition", condition),
+            department -> deviceTable.addFilter("Department", department),
+            location -> deviceTable.addFilter("Location", location)
+        );
 
-        // Add listeners
-        addButton.addActionListener(e -> showAddDeviceDialog());
-        editButton.addActionListener(e -> showEditDeviceDialog());
-        deleteButton.addActionListener(e -> deleteSelectedDevice());
-
-        searchField.addKeyListener(new KeyAdapter() {
-            public void keyReleased(KeyEvent e) {
-                // TODO: Implement search
-            }
-        });
-
-        // Initial data load
-        refreshDeviceTable();
+        // Add components to panel
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        centerPanel.add(filterPanel, BorderLayout.NORTH);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
     }
 
     private JPanel createBasicInfoPanel(JTextField nameField, JTextField typeField, 
