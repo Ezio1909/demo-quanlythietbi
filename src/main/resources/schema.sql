@@ -175,4 +175,28 @@ INSERT INTO device_assignments (employee_id, device_id, assigned_at, returned_at
 (27, 23, '2023-08-15 10:30:00', '2024-01-15 11:15:00', 'Returned'),
 (28, 25, '2023-09-01 11:45:00', '2024-02-01 10:00:00', 'Returned'),
 (29, 27, '2023-09-15 13:00:00', '2024-02-15 09:45:00', 'Returned'),
-(30, 29, '2023-10-01 14:15:00', '2024-03-01 16:30:00', 'Returned'); 
+(30, 29, '2023-10-01 14:15:00', '2024-03-01 16:30:00', 'Returned');
+
+-- Insert sample maintenance records
+INSERT INTO device_maintenance (device_id, maintenance_type, description, reported_at, scheduled_for, completed_at, cost, status, notes) VALUES
+-- Completed maintenance
+(1, 'Hardware Repair', 'Replace faulty keyboard', '2023-12-01 09:00:00', '2023-12-02 10:00:00', '2023-12-02 11:30:00', 150.00, 'Completed', 'Keyboard replaced with new model KB-101'),
+(3, 'Software Update', 'OS upgrade and security patches', '2023-12-05 14:00:00', '2023-12-06 09:00:00', '2023-12-06 10:15:00', 0.00, 'Completed', 'Updated to latest OS version'),
+(5, 'Cleaning', 'Deep cleaning and sanitization', '2023-12-10 11:00:00', '2023-12-11 14:00:00', '2023-12-11 15:30:00', 50.00, 'Completed', 'Device thoroughly cleaned and sanitized'),
+(7, 'Battery Replacement', 'Replace degraded battery', '2023-12-15 10:00:00', '2023-12-16 11:00:00', '2023-12-16 12:45:00', 200.00, 'Completed', 'New battery installed, old battery recycled'),
+(9, 'Screen Repair', 'Fix screen flickering issue', '2023-12-20 13:00:00', '2023-12-21 09:00:00', '2023-12-21 11:00:00', 300.00, 'Completed', 'Screen replaced with new LCD panel'),
+
+-- In Progress maintenance
+(2, 'Hardware Upgrade', 'RAM upgrade from 16GB to 32GB', '2024-03-10 09:00:00', '2024-03-11 10:00:00', NULL, 250.00, 'In Progress', 'RAM modules received, installation in progress'),
+(4, 'Diagnostic Check', 'Investigate random shutdowns', '2024-03-12 14:00:00', '2024-03-13 09:00:00', NULL, 100.00, 'In Progress', 'Running extensive diagnostic tests'),
+(6, 'Network Card Repair', 'Fix intermittent connectivity', '2024-03-14 11:00:00', '2024-03-15 14:00:00', NULL, 150.00, 'In Progress', 'Testing different network scenarios'),
+
+-- Scheduled maintenance
+(8, 'Annual Inspection', 'Routine annual hardware check', '2024-03-16 10:00:00', '2024-03-20 11:00:00', NULL, 75.00, 'Scheduled', 'Regular maintenance checkup'),
+(10, 'Software Upgrade', 'Upgrade design software suite', '2024-03-17 13:00:00', '2024-03-21 09:00:00', NULL, 0.00, 'Scheduled', 'New software version available'),
+(12, 'Hardware Cleaning', 'Internal dust removal and cleaning', '2024-03-18 15:00:00', '2024-03-22 14:00:00', NULL, 50.00, 'Scheduled', 'Regular cleaning maintenance'),
+
+-- Pending maintenance
+(11, 'Battery Check', 'Check battery health and capacity', '2024-03-19 09:00:00', NULL, NULL, NULL, 'Pending', 'Reported low battery life'),
+(13, 'Display Calibration', 'Color calibration for design work', '2024-03-19 11:00:00', NULL, NULL, NULL, 'Pending', 'Colors appear inconsistent'),
+(15, 'Performance Optimization', 'System running slower than usual', '2024-03-19 14:00:00', NULL, NULL, NULL, 'Pending', 'User reported lag in applications'); 
