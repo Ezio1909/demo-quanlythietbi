@@ -73,9 +73,11 @@ public class SidebarPanel extends JPanel {
     private void selectButton(MenuButton button) {
         if (selectedButton != null) {
             selectedButton.setSelected(false);
+            selectedButton.setBackground(SIDEBAR_BG);
         }
         selectedButton = button;
         button.setSelected(true);
+        button.setBackground(SELECTED_BG);
         cardLayout.show(contentPanel, button.getCardName());
     }
 
@@ -124,7 +126,12 @@ public class SidebarPanel extends JPanel {
 
         public void setSelected(boolean selected) {
             isSelected = selected;
-            setBackground(selected ? SELECTED_BG : (isHovered ? HOVER_BG : SIDEBAR_BG));
+            if (selected) {
+                isHovered = false;
+                setBackground(SELECTED_BG);
+            } else {
+                setBackground(isHovered ? HOVER_BG : SIDEBAR_BG);
+            }
         }
 
         @Override
