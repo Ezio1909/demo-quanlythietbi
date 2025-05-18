@@ -2,57 +2,65 @@ package quanlythietbi.ui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
+import java.awt.Frame;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import quanlythietbi.entity.DeviceAssignmentRecord;
-import quanlythietbi.entity.DeviceInfoRecord;
 import quanlythietbi.entity.EmployeeInfoRecord;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.ui.components.SortableTable;
+import quanlythietbi.ui.dialogs.AssignDeviceDialog;
+import quanlythietbi.ui.dialogs.EmployeeDevicesDialog;
 
 public class AssignmentPanel extends JPanel {
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final AssignmentManagementAdapter assignmentAdapter;
     private final DeviceManagementAdapter deviceAdapter;
-    private JTable assignmentTable;
+    private SortableTable assignmentTable;
     private DefaultTableModel tableModel;
-    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public AssignmentPanel(AssignmentManagementAdapter assignmentAdapter, DeviceManagementAdapter deviceAdapter) {
         this.assignmentAdapter = assignmentAdapter;
         this.deviceAdapter = deviceAdapter;
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(10, 10));
         initializeComponents();
+        refreshAssignmentTable();
     }
 
     private void initializeComponents() {
-        // Create toolbar
-        JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        // Top panel with buttons
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+        
         JButton assignButton = new JButton("Assign Device");
         JButton returnButton = new JButton("Return Device");
         
-        toolBar.add(assignButton);
-        toolBar.add(returnButton);
+        assignButton.addActionListener(e -> showAssignDeviceDialog());
+        returnButton.addActionListener(e -> returnSelectedDevice());
+        
+        topPanel.add(assignButton);
+        topPanel.add(returnButton);
+        add(topPanel, BorderLayout.NORTH);
 
         // Table
         String[] columns = {
             "ID",
             "Device",
             "Employee",
+            "Department",
             "Assigned Date",
-            "Return Date",
+            "Expiration Date",
+            "Returned Date",
             "Status"
         };
         
@@ -62,93 +70,51 @@ public class AssignmentPanel extends JPanel {
                 return false;
             }
         };
-        assignmentTable = new JTable(tableModel);
+        assignmentTable = new SortableTable(tableModel);
+        
+        // Add mouse listener for employee name clicks
+        assignmentTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = assignmentTable.rowAtPoint(e.getPoint());
+                int col = assignmentTable.columnAtPoint(e.getPoint());
+                
+                if (row >= 0 && col == 2) { // Employee column
+                    String employeeName = (String) tableModel.getValueAt(row, col);
+                    String department = (String) tableModel.getValueAt(row, 3);
+                    
+                    // Find employee by name and department
+                    List<EmployeeInfoRecord> employees = assignmentAdapter.getAllEmployees();
+                    employees.stream()
+                        .filter(emp -> emp.name().equals(employeeName) && emp.department().equals(department))
+                        .findFirst()
+                        .ifPresent(employee -> showEmployeeDevicesDialog(employee));
+                }
+            }
+        });
+
         JScrollPane scrollPane = new JScrollPane(assignmentTable);
-
-        // Add components
-        add(toolBar, BorderLayout.NORTH);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         add(scrollPane, BorderLayout.CENTER);
-
-        // Add listeners
-        assignButton.addActionListener(e -> showAssignDeviceDialog());
-        returnButton.addActionListener(e -> returnSelectedDevice());
-
-        // Initial data load
-        refreshAssignmentTable();
     }
 
     private void showAssignDeviceDialog() {
-        // Get available devices (excluding those in maintenance/repair)
-        List<DeviceInfoRecord> availableDevices = deviceAdapter.getAllDevices().stream()
-            .filter(d -> "Available".equals(d.status()))
-            .toList();
-
-        if (availableDevices.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "No available devices to assign.",
-                "No Devices",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Get list of employees
-        List<EmployeeInfoRecord> employees = assignmentAdapter.getAllEmployees();
-        if (employees.isEmpty()) {
-            JOptionPane.showMessageDialog(this,
-                "No employees found in the system.",
-                "No Employees",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        // Create device combo box
-        JComboBox<DeviceInfoRecord> deviceCombo = new JComboBox<>(
-            availableDevices.toArray(new DeviceInfoRecord[0])
+        AssignDeviceDialog dialog = new AssignDeviceDialog(
+            (Frame) SwingUtilities.getWindowAncestor(this),
+            assignmentAdapter,
+            deviceAdapter
         );
-        deviceCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> 
-            new JLabel(value != null ? value.name() + " (" + value.serialNumber() + ")" : ""));
+        dialog.setVisible(true);
+        refreshAssignmentTable();
+    }
 
-        // Create employee combo box
-        JComboBox<EmployeeInfoRecord> employeeCombo = new JComboBox<>(
-            employees.toArray(new EmployeeInfoRecord[0])
+    private void showEmployeeDevicesDialog(EmployeeInfoRecord employee) {
+        EmployeeDevicesDialog dialog = new EmployeeDevicesDialog(
+            (Frame) SwingUtilities.getWindowAncestor(this),
+            assignmentAdapter,
+            employee
         );
-        employeeCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> 
-            new JLabel(value != null ? value.name() + " (" + value.department() + ")" : ""));
-
-        // Create form panel
-        JPanel form = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.anchor = GridBagConstraints.WEST;
-        gbc.insets = new Insets(5, 5, 5, 5);
-
-        form.add(new JLabel("Device:"), gbc);
-        gbc.gridy++;
-        form.add(new JLabel("Employee:"), gbc);
-
-        gbc.gridx = 1;
-        gbc.gridy = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.weightx = 1.0;
-        form.add(deviceCombo, gbc);
-        gbc.gridy++;
-        form.add(employeeCombo, gbc);
-
-        int result = JOptionPane.showConfirmDialog(this, form,
-            "Assign Device",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
-
-        if (result == JOptionPane.OK_OPTION) {
-            DeviceInfoRecord selectedDevice = (DeviceInfoRecord) deviceCombo.getSelectedItem();
-            EmployeeInfoRecord selectedEmployee = (EmployeeInfoRecord) employeeCombo.getSelectedItem();
-
-            if (selectedDevice != null && selectedEmployee != null) {
-                assignmentAdapter.assignDevice(selectedDevice.id(), selectedEmployee.id());
-                refreshAssignmentTable();
-            }
-        }
+        dialog.setVisible(true);
     }
 
     private void returnSelectedDevice() {
@@ -161,8 +127,9 @@ public class AssignmentPanel extends JPanel {
             return;
         }
 
-        Integer assignmentId = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String status = (String) tableModel.getValueAt(selectedRow, 5);
+        int modelRow = assignmentTable.convertRowIndexToModel(selectedRow);
+        Integer assignmentId = (Integer) tableModel.getValueAt(modelRow, 0);
+        String status = (String) tableModel.getValueAt(modelRow, 7);
 
         if ("Returned".equals(status)) {
             JOptionPane.showMessageDialog(this,
@@ -172,12 +139,12 @@ public class AssignmentPanel extends JPanel {
             return;
         }
 
-        String notes = JOptionPane.showInputDialog(this,
-            "Enter return notes (optional):",
-            "Return Device",
-            JOptionPane.PLAIN_MESSAGE);
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to return this device?",
+            "Confirm Return",
+            JOptionPane.YES_NO_OPTION);
 
-        if (notes != null) { // null means user cancelled
+        if (confirm == JOptionPane.YES_OPTION) {
             assignmentAdapter.returnDevice(assignmentId);
             refreshAssignmentTable();
         }
@@ -192,7 +159,9 @@ public class AssignmentPanel extends JPanel {
                 assignment.id(),
                 assignment.deviceName(),
                 assignment.employeeName(),
+                assignment.department(),
                 assignment.assignedAt().format(DATE_FORMATTER),
+                assignment.expirationDate().format(DATE_FORMATTER),
                 assignment.returnedAt() != null ? 
                     assignment.returnedAt().format(DATE_FORMATTER) : "",
                 assignment.status()
