@@ -2,6 +2,7 @@ package quanlythietbi.ui;
 
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
+import java.awt.Frame;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
@@ -15,6 +16,7 @@ import javax.swing.table.DefaultTableModel;
 import quanlythietbi.entity.MaintenanceRecord;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.ui.components.DateTimePicker;
 
 public class MaintenancePanel extends JPanel {
     private final MaintenanceManagementAdapter maintenanceAdapter;
@@ -115,8 +117,7 @@ public class MaintenancePanel extends JPanel {
         });
         JTextArea descArea = new JTextArea(3, 30);
         JTextField costField = new JTextField(10);
-        JTextField scheduledField = new JTextField(16);
-        scheduledField.setToolTipText("Format: YYYY-MM-DD HH:mm");
+        DateTimePicker scheduledPicker = new DateTimePicker();
 
         // Create form panel
         JPanel form = new JPanel(new GridBagLayout());
@@ -147,30 +148,60 @@ public class MaintenancePanel extends JPanel {
         gbc.gridy++;
         form.add(costField, gbc);
         gbc.gridy++;
-        form.add(scheduledField, gbc);
+        form.add(scheduledPicker, gbc);
 
-        int result = JOptionPane.showConfirmDialog(this, form,
-            "Add Maintenance Record",
-            JOptionPane.OK_CANCEL_OPTION,
-            JOptionPane.PLAIN_MESSAGE);
+        // Create custom dialog
+        JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), "Add Maintenance Record", true);
+        dialog.setLayout(new BorderLayout());
+        dialog.add(form, BorderLayout.CENTER);
 
-        if (result == JOptionPane.OK_OPTION) {
+        // Create button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        JButton okButton = new JButton("OK");
+        JButton cancelButton = new JButton("Cancel");
+        buttonPanel.add(okButton);
+        buttonPanel.add(cancelButton);
+        dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+        // Add button listeners
+        okButton.addActionListener(e -> {
             try {
+                // Validate cost
+                String costText = costField.getText().trim();
+                if (costText.isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Please enter a cost value.",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    costField.requestFocus();
+                    return;
+                }
+                BigDecimal cost = new BigDecimal(costText);
+
+                // Validate description
+                if (descArea.getText().trim().isEmpty()) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Please enter a description.",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    descArea.requestFocus();
+                    return;
+                }
+
+                // Get scheduled date
+                LocalDateTime scheduledDate = scheduledPicker.getValue();
+                if (scheduledDate == null) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Please select a scheduled date and time.",
+                        "Validation Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    scheduledPicker.requestFocus();
+                    return;
+                }
+
                 // Parse device ID
                 String deviceSelection = (String) deviceCombo.getSelectedItem();
                 int deviceId = Integer.parseInt(deviceSelection.split(" - ")[0]);
-
-                // Parse cost
-                BigDecimal cost = new BigDecimal(costField.getText().trim());
-
-                // Parse scheduled date
-                LocalDateTime scheduledDate = null;
-                if (!scheduledField.getText().trim().isEmpty()) {
-                    scheduledDate = LocalDateTime.parse(
-                        scheduledField.getText().trim(),
-                        DATE_FORMATTER
-                    );
-                }
 
                 MaintenanceRecord newRecord = new MaintenanceRecord(
                     null, // ID will be assigned by database
@@ -188,18 +219,28 @@ public class MaintenancePanel extends JPanel {
 
                 maintenanceAdapter.addMaintenanceRecord(newRecord);
                 refreshMaintenanceTable();
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this,
+                dialog.dispose();
+            } catch (NumberFormatException ex) {
+                JOptionPane.showMessageDialog(dialog,
                     "Invalid cost value. Please enter a valid number.",
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this,
-                    "Error: " + e.getMessage(),
+                costField.requestFocus();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(dialog,
+                    "Error: " + ex.getMessage(),
                     "Error",
                     JOptionPane.ERROR_MESSAGE);
             }
-        }
+        });
+
+        cancelButton.addActionListener(e -> dialog.dispose());
+
+        // Set dialog properties
+        dialog.pack();
+        dialog.setLocationRelativeTo(this);
+        dialog.setResizable(false);
+        dialog.setVisible(true);
     }
 
     private void showEditMaintenanceDialog() {
@@ -220,10 +261,8 @@ public class MaintenancePanel extends JPanel {
             JTextField costField = new JTextField(
                 record.cost() != null ? record.cost().toString() : ""
             );
-            JTextField scheduledField = new JTextField(
-                record.scheduledFor() != null ? 
-                record.scheduledFor().format(DATE_FORMATTER) : ""
-            );
+            DateTimePicker scheduledPicker = new DateTimePicker();
+            scheduledPicker.setValue(record.scheduledFor());
             JComboBox<String> statusCombo = new JComboBox<>(new String[]{
                 "Pending",
                 "Scheduled",
@@ -259,27 +298,57 @@ public class MaintenancePanel extends JPanel {
             gbc.gridy++;
             form.add(costField, gbc);
             gbc.gridy++;
-            form.add(scheduledField, gbc);
+            form.add(scheduledPicker, gbc);
             gbc.gridy++;
             form.add(statusCombo, gbc);
 
-            int result = JOptionPane.showConfirmDialog(this, form,
-                "Edit Maintenance Record",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
+            // Create custom dialog
+            JDialog dialog = new JDialog((Frame)SwingUtilities.getWindowAncestor(this), "Edit Maintenance Record", true);
+            dialog.setLayout(new BorderLayout());
+            dialog.add(form, BorderLayout.CENTER);
 
-            if (result == JOptionPane.OK_OPTION) {
+            // Create button panel
+            JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+            JButton okButton = new JButton("OK");
+            JButton cancelButton = new JButton("Cancel");
+            buttonPanel.add(okButton);
+            buttonPanel.add(cancelButton);
+            dialog.add(buttonPanel, BorderLayout.SOUTH);
+
+            // Add button listeners
+            okButton.addActionListener(e -> {
                 try {
-                    // Parse cost
-                    BigDecimal cost = new BigDecimal(costField.getText().trim());
+                    // Validate cost
+                    String costText = costField.getText().trim();
+                    if (costText.isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Please enter a cost value.",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        costField.requestFocus();
+                        return;
+                    }
+                    BigDecimal cost = new BigDecimal(costText);
 
-                    // Parse scheduled date
-                    LocalDateTime scheduledDate = null;
-                    if (!scheduledField.getText().trim().isEmpty()) {
-                        scheduledDate = LocalDateTime.parse(
-                            scheduledField.getText().trim(),
-                            DATE_FORMATTER
-                        );
+                    // Validate description
+                    if (descArea.getText().trim().isEmpty()) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Please enter a description.",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        descArea.requestFocus();
+                        return;
+                    }
+
+                    // Get scheduled date
+                    LocalDateTime scheduledDate = scheduledPicker.getValue();
+                    if (scheduledDate == null) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Please select a scheduled date and time.",
+                            "Validation Error",
+                            JOptionPane.ERROR_MESSAGE);
+                        scheduledPicker.requestFocus();
+                        return;
                     }
 
                     MaintenanceRecord updatedRecord = new MaintenanceRecord(
@@ -298,18 +367,28 @@ public class MaintenancePanel extends JPanel {
 
                     maintenanceAdapter.updateMaintenanceRecord(updatedRecord);
                     refreshMaintenanceTable();
-                } catch (NumberFormatException e) {
-                    JOptionPane.showMessageDialog(this,
+                    dialog.dispose();
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(dialog,
                         "Invalid cost value. Please enter a valid number.",
                         "Validation Error",
                         JOptionPane.ERROR_MESSAGE);
-                } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this,
-                        "Error: " + e.getMessage(),
+                    costField.requestFocus();
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Error: " + ex.getMessage(),
                         "Error",
                         JOptionPane.ERROR_MESSAGE);
                 }
-            }
+            });
+
+            cancelButton.addActionListener(e -> dialog.dispose());
+
+            // Set dialog properties
+            dialog.pack();
+            dialog.setLocationRelativeTo(this);
+            dialog.setResizable(false);
+            dialog.setVisible(true);
         });
     }
 
