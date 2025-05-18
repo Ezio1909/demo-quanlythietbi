@@ -84,13 +84,13 @@ public class EmployeeInfoRecordTest {
 
     @Test
     public void testEmployeeInfoRecordWithNullId() {
-        assertThrows(NullPointerException.class,
-            () -> new EmployeeInfoRecord(
-                null, "Alice", "alice@example.com", "HR",
-                null, null, null, null, null,
-                null, null, null
-            )
+        // ID can be null for new records
+        EmployeeInfoRecord record = new EmployeeInfoRecord(
+            null, "Alice", "alice@example.com", "HR",
+            null, null, null, null, null,
+            null, null, null
         );
+        assertNull(record.id());
     }
 
     @Test

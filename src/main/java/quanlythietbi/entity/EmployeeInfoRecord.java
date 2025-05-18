@@ -19,7 +19,7 @@ public record EmployeeInfoRecord(
     LocalDateTime updatedAt
 ) {
     public EmployeeInfoRecord {
-        Objects.requireNonNull(id);
+        // ID can be null for new records
         Objects.requireNonNull(name, "Employee name cannot be null");
         Objects.requireNonNull(email, "Employee email cannot be null");
         Objects.requireNonNull(department, "Employee department cannot be null");
