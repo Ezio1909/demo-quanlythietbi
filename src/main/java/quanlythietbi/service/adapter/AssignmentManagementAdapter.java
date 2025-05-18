@@ -98,7 +98,12 @@ public class AssignmentManagementAdapter {
                 throw new IllegalArgumentException("Device not found with ID: " + deviceId);
             }
             if (!"Available".equals(device.get().status())) {
-                throw new IllegalArgumentException("Device is not available for assignment: " + deviceId);
+                throw new IllegalArgumentException(String.format(
+                    "Device '%s' (ID: %d) cannot be assigned because it is currently %s",
+                    device.get().name(),
+                    deviceId,
+                    device.get().status().toLowerCase()
+                ));
             }
 
             // Create the assignment
