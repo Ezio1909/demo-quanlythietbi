@@ -7,9 +7,9 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import quanlythietbi.enums.DBType;
 import quanlythietbi.connector.IConnectionManager;
 import quanlythietbi.connector.PooledConnectionManagerImpl;
-import quanlythietbi.enums.DBType;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
@@ -17,6 +17,8 @@ import quanlythietbi.service.assignment.DeviceAssignmentDAO;
 import quanlythietbi.service.assignment.DeviceAssignmentDAOImpl;
 import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
 import quanlythietbi.service.deviceinfo.DeviceInfoDAOImpl;
+import quanlythietbi.service.employeeinfo.EmployeeInfoDAO;
+import quanlythietbi.service.employeeinfo.EmployeeInfoDAOImpl;
 import quanlythietbi.service.maintenance.MaintenanceDAO;
 import quanlythietbi.service.maintenance.MaintenanceDAOImpl;
 import quanlythietbi.ui.MainFrame;
@@ -41,10 +43,15 @@ public class DeviceManagementApplication {
                 DeviceInfoDAO deviceDAO = new DeviceInfoDAOImpl(connectionManager);
                 DeviceAssignmentDAO assignmentDAO = new DeviceAssignmentDAOImpl(connectionManager);
                 MaintenanceDAO maintenanceDAO = new MaintenanceDAOImpl(connectionManager);
+                EmployeeInfoDAO employeeDAO = new EmployeeInfoDAOImpl(connectionManager);
                 
                 // Set up adapters
                 DeviceManagementAdapter deviceAdapter = new DeviceManagementAdapter(deviceDAO);
-                AssignmentManagementAdapter assignmentAdapter = new AssignmentManagementAdapter(assignmentDAO);
+                AssignmentManagementAdapter assignmentAdapter = new AssignmentManagementAdapter(
+                    assignmentDAO,
+                    employeeDAO,
+                    deviceDAO
+                );
                 MaintenanceManagementAdapter maintenanceAdapter = new MaintenanceManagementAdapter(maintenanceDAO);
                 
                 // Create and show main frame
