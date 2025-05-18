@@ -9,14 +9,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import quanlythietbi.entity.DeviceAssignmentRecord;
+import quanlythietbi.entity.EmployeeInfoRecord;
 import quanlythietbi.service.assignment.DeviceAssignmentDAO;
+import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
+import quanlythietbi.service.employeeinfo.EmployeeInfoDAO;
 
 public class AssignmentManagementAdapter {
     private static final Logger logger = LoggerFactory.getLogger(AssignmentManagementAdapter.class);
     private final DeviceAssignmentDAO assignmentDAO;
+    private final EmployeeInfoDAO employeeDAO;
+    private final DeviceInfoDAO deviceDAO;
 
-    public AssignmentManagementAdapter(DeviceAssignmentDAO assignmentDAO) {
+    public AssignmentManagementAdapter(
+        DeviceAssignmentDAO assignmentDAO,
+        EmployeeInfoDAO employeeDAO,
+        DeviceInfoDAO deviceDAO
+    ) {
         this.assignmentDAO = assignmentDAO;
+        this.employeeDAO = employeeDAO;
+        this.deviceDAO = deviceDAO;
+    }
+
+    public List<EmployeeInfoRecord> getAllEmployees() {
+        try {
+            return employeeDAO.findAll();
+        } catch (SQLException e) {
+            logger.error("Failed to get all employees", e);
+            return Collections.emptyList();
+        }
     }
 
     public List<DeviceAssignmentRecord> getAllAssignments() {
@@ -64,15 +84,31 @@ public class AssignmentManagementAdapter {
         }
     }
 
-    public void assignDevice(Integer employeeId, Integer deviceId) {
+    public void assignDevice(Integer employeeId, Integer deviceId) throws IllegalArgumentException {
         try {
+            // Validate employee exists
+            var employee = employeeDAO.findById(employeeId);
+            if (employee == null) {
+                throw new IllegalArgumentException("Employee not found with ID: " + employeeId);
+            }
+
+            // Validate device exists and is available
+            var device = deviceDAO.findById(deviceId);
+            if (device.isEmpty()) {
+                throw new IllegalArgumentException("Device not found with ID: " + deviceId);
+            }
+            if (!"Available".equals(device.get().status())) {
+                throw new IllegalArgumentException("Device is not available for assignment: " + deviceId);
+            }
+
+            // Create the assignment
             DeviceAssignmentRecord assignment = new DeviceAssignmentRecord(
                 null,
                 employeeId,
                 deviceId,
-                null,
-                null,
-                null,
+                device.get().name(),
+                employee.name(),
+                employee.department(),
                 null,
                 null,
                 "Active"
@@ -80,6 +116,7 @@ public class AssignmentManagementAdapter {
             assignmentDAO.insert(assignment);
         } catch (SQLException e) {
             logger.error("Failed to assign device {} to employee {}", deviceId, employeeId, e);
+            throw new IllegalArgumentException("Failed to assign device: " + e.getMessage());
         }
     }
 

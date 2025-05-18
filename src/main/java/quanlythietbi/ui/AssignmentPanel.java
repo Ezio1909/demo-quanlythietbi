@@ -15,11 +15,11 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.table.DefaultTableModel;
 
 import quanlythietbi.entity.DeviceAssignmentRecord;
 import quanlythietbi.entity.DeviceInfoRecord;
+import quanlythietbi.entity.EmployeeInfoRecord;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 
@@ -28,8 +28,6 @@ public class AssignmentPanel extends JPanel {
     private final DeviceManagementAdapter deviceAdapter;
     private JTable assignmentTable;
     private DefaultTableModel tableModel;
-    private JButton assignButton, returnButton, deleteButton;
-    private JComboBox<String> statusFilter;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     public AssignmentPanel(AssignmentManagementAdapter assignmentAdapter, DeviceManagementAdapter deviceAdapter) {
@@ -42,28 +40,17 @@ public class AssignmentPanel extends JPanel {
     private void initializeComponents() {
         // Create toolbar
         JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton assignButton = new JButton("Assign Device");
+        JButton returnButton = new JButton("Return Device");
         
-        // Status filter
-        statusFilter = new JComboBox<>(new String[]{"All", "Active", "Returned"});
-        statusFilter.addActionListener(e -> refreshAssignmentTable());
-        toolBar.add(new JLabel("Status: "));
-        toolBar.add(statusFilter);
-
-        // Buttons
-        assignButton = new JButton("Assign Device");
-        returnButton = new JButton("Return Device");
-        deleteButton = new JButton("Delete Assignment");
-
         toolBar.add(assignButton);
         toolBar.add(returnButton);
-        toolBar.add(deleteButton);
 
         // Table
         String[] columns = {
             "ID",
             "Device",
             "Employee",
-            "Department",
             "Assigned Date",
             "Return Date",
             "Status"
@@ -85,14 +72,13 @@ public class AssignmentPanel extends JPanel {
         // Add listeners
         assignButton.addActionListener(e -> showAssignDeviceDialog());
         returnButton.addActionListener(e -> returnSelectedDevice());
-        deleteButton.addActionListener(e -> deleteSelectedAssignment());
 
         // Initial data load
         refreshAssignmentTable();
     }
 
     private void showAssignDeviceDialog() {
-        // Get list of available devices
+        // Get available devices (excluding those in maintenance/repair)
         List<DeviceInfoRecord> availableDevices = deviceAdapter.getAllDevices().stream()
             .filter(d -> "Available".equals(d.status()))
             .toList();
@@ -105,15 +91,29 @@ public class AssignmentPanel extends JPanel {
             return;
         }
 
-        // Create form components
-        JComboBox<String> deviceCombo = new JComboBox<>(
-            availableDevices.stream()
-                .map(d -> d.id() + " - " + d.name())
-                .toArray(String[]::new)
+        // Get list of employees
+        List<EmployeeInfoRecord> employees = assignmentAdapter.getAllEmployees();
+        if (employees.isEmpty()) {
+            JOptionPane.showMessageDialog(this,
+                "No employees found in the system.",
+                "No Employees",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        // Create device combo box
+        JComboBox<DeviceInfoRecord> deviceCombo = new JComboBox<>(
+            availableDevices.toArray(new DeviceInfoRecord[0])
         );
-        JTextField employeeIdField = new JTextField(10);
-        JTextField employeeNameField = new JTextField(20);
-        JTextField departmentField = new JTextField(20);
+        deviceCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> 
+            new JLabel(value != null ? value.name() + " (" + value.serialNumber() + ")" : ""));
+
+        // Create employee combo box
+        JComboBox<EmployeeInfoRecord> employeeCombo = new JComboBox<>(
+            employees.toArray(new EmployeeInfoRecord[0])
+        );
+        employeeCombo.setRenderer((list, value, index, isSelected, cellHasFocus) -> 
+            new JLabel(value != null ? value.name() + " (" + value.department() + ")" : ""));
 
         // Create form panel
         JPanel form = new JPanel(new GridBagLayout());
@@ -125,22 +125,15 @@ public class AssignmentPanel extends JPanel {
 
         form.add(new JLabel("Device:"), gbc);
         gbc.gridy++;
-        form.add(new JLabel("Employee ID:"), gbc);
-        gbc.gridy++;
-        form.add(new JLabel("Employee Name:"), gbc);
-        gbc.gridy++;
-        form.add(new JLabel("Department:"), gbc);
+        form.add(new JLabel("Employee:"), gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1.0;
         form.add(deviceCombo, gbc);
         gbc.gridy++;
-        form.add(employeeIdField, gbc);
-        gbc.gridy++;
-        form.add(employeeNameField, gbc);
-        gbc.gridy++;
-        form.add(departmentField, gbc);
+        form.add(employeeCombo, gbc);
 
         int result = JOptionPane.showConfirmDialog(this, form,
             "Assign Device",
@@ -148,24 +141,12 @@ public class AssignmentPanel extends JPanel {
             JOptionPane.PLAIN_MESSAGE);
 
         if (result == JOptionPane.OK_OPTION) {
-            try {
-                // Parse device ID
-                String deviceSelection = (String) deviceCombo.getSelectedItem();
-                int deviceId = Integer.parseInt(deviceSelection.split(" - ")[0]);
-                int employeeId = Integer.parseInt(employeeIdField.getText().trim());
+            DeviceInfoRecord selectedDevice = (DeviceInfoRecord) deviceCombo.getSelectedItem();
+            EmployeeInfoRecord selectedEmployee = (EmployeeInfoRecord) employeeCombo.getSelectedItem();
 
-                assignmentAdapter.assignDevice(employeeId, deviceId);
+            if (selectedDevice != null && selectedEmployee != null) {
+                assignmentAdapter.assignDevice(selectedDevice.id(), selectedEmployee.id());
                 refreshAssignmentTable();
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this,
-                    "Invalid ID format. Please enter valid numbers.",
-                    "Validation Error",
-                    JOptionPane.ERROR_MESSAGE);
-            } catch (Exception e) {
-                JOptionPane.showMessageDialog(this,
-                    "Error: " + e.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
             }
         }
     }
@@ -181,8 +162,8 @@ public class AssignmentPanel extends JPanel {
         }
 
         Integer assignmentId = (Integer) tableModel.getValueAt(selectedRow, 0);
-        String status = (String) tableModel.getValueAt(selectedRow, 6);
-        
+        String status = (String) tableModel.getValueAt(selectedRow, 5);
+
         if ("Returned".equals(status)) {
             JOptionPane.showMessageDialog(this,
                 "This device has already been returned",
@@ -191,66 +172,31 @@ public class AssignmentPanel extends JPanel {
             return;
         }
 
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to mark this device as returned?",
-            "Confirm Return",
-            JOptionPane.YES_NO_OPTION);
+        String notes = JOptionPane.showInputDialog(this,
+            "Enter return notes (optional):",
+            "Return Device",
+            JOptionPane.PLAIN_MESSAGE);
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (notes != null) { // null means user cancelled
             assignmentAdapter.returnDevice(assignmentId);
-            refreshAssignmentTable();
-        }
-    }
-
-    private void deleteSelectedAssignment() {
-        int selectedRow = assignmentTable.getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(this,
-                "Please select an assignment to delete",
-                "No Selection",
-                JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        Integer assignmentId = (Integer) tableModel.getValueAt(selectedRow, 0);
-        int confirm = JOptionPane.showConfirmDialog(this,
-            "Are you sure you want to delete this assignment record?",
-            "Confirm Delete",
-            JOptionPane.YES_NO_OPTION);
-
-        if (confirm == JOptionPane.YES_OPTION) {
-            assignmentAdapter.deleteAssignment(assignmentId);
             refreshAssignmentTable();
         }
     }
 
     private void refreshAssignmentTable() {
         tableModel.setRowCount(0);
-        String selectedStatus = (String) statusFilter.getSelectedItem();
+        List<DeviceAssignmentRecord> assignments = assignmentAdapter.getAllAssignments();
         
-        List<DeviceAssignmentRecord> assignments;
-        if ("All".equals(selectedStatus)) {
-            assignments = assignmentAdapter.getAllAssignments();
-        } else if ("Active".equals(selectedStatus)) {
-            assignments = assignmentAdapter.getActiveAssignments();
-        } else {
-            assignments = assignmentAdapter.getAllAssignments().stream()
-                .filter(a -> "Returned".equals(a.status()))
-                .toList();
-        }
-
         for (DeviceAssignmentRecord assignment : assignments) {
-            Object[] row = {
+            tableModel.addRow(new Object[]{
                 assignment.id(),
                 assignment.deviceName(),
                 assignment.employeeName(),
-                assignment.department(),
                 assignment.assignedAt().format(DATE_FORMATTER),
                 assignment.returnedAt() != null ? 
                     assignment.returnedAt().format(DATE_FORMATTER) : "",
                 assignment.status()
-            };
-            tableModel.addRow(row);
+            });
         }
     }
 } 

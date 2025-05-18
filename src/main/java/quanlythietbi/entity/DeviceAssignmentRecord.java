@@ -15,8 +15,8 @@ public record DeviceAssignmentRecord(
     String status
 ) {
     public DeviceAssignmentRecord {
-        Objects.requireNonNull(id);
-        Objects.requireNonNull(employeeId);
-        Objects.requireNonNull(deviceId);
+        // id can be null for new records
+        Objects.requireNonNull(employeeId, "Employee ID cannot be null");
+        Objects.requireNonNull(deviceId, "Device ID cannot be null");
     }
 } 
