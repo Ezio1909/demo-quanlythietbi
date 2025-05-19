@@ -14,11 +14,15 @@ public class DatabaseInitializer {
 
     public static void initializeDatabase(Connection connection) {
         try {
-            // Read schema.sql from resources
+            // Determine which schema to load based on JDBC URL
+            String jdbcUrl = connection.getMetaData().getURL();
+            String schemaFile = jdbcUrl != null && jdbcUrl.contains("h2") ? "schema-h2.sql" : "schema.sql";
+
+            // Read schema from resources
             String schema;
             try (BufferedReader reader = new BufferedReader(
                     new InputStreamReader(
-                        DatabaseInitializer.class.getClassLoader().getResourceAsStream("schema.sql")
+                        DatabaseInitializer.class.getClassLoader().getResourceAsStream(schemaFile)
                     ))) {
                 schema = reader.lines().collect(Collectors.joining("\n"));
             }
