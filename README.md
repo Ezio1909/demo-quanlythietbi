@@ -78,7 +78,7 @@ A Java Swing-based application for managing company devices and their assignment
   - Theme options
   - Notification preferences
 - Database configuration:
-  - Multiple database support (H2, SQLite)
+  - Multiple database support (H2, MySQL)
   - Automatic backups
   - Backup location configuration
 - Report customization:
@@ -90,10 +90,29 @@ A Java Swing-based application for managing company devices and their assignment
 
 - Java 17
 - Swing (Modern UI)
-- H2 Database
+- H2 Database (for fast unit/integration testing, no triggers)
+- MySQL 8 (for dev/demo/production, with triggers)
 - Custom Connection Pool (using BlockingQueue)
 - SLF4J + Logback (Logging)
 - Maven
+
+## Database Schema & Triggers
+
+### MySQL (dev/demo/production)
+- Uses `schema.sql` with full schema and **triggers** for device status automation.
+- Triggers automatically update device status on assignment, return, and maintenance events.
+- Schema is resettable for dev/demo with `TRUNCATE` and sample data.
+
+### H2 (unit/integration testing)
+- Uses `schema-h2.sql` (no triggers) for compatibility and fast test cycles.
+- Schema is otherwise identical to MySQL, ensuring test coverage matches production logic.
+- Tests run quickly and reliably without MySQL-specific syntax issues.
+
+### Automatic Schema Selection
+- The application detects the database type at runtime:
+  - Loads `schema.sql` for MySQL.
+  - Loads `schema-h2.sql` for H2.
+- This ensures the correct schema is always used for the environment.
 
 ## Project Structure
 
