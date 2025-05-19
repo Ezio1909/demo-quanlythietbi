@@ -5,27 +5,86 @@ A Java Swing-based application for managing company devices and their assignment
 ## Features
 
 ### Device Management
-- Add and register new company devices
-- Update device information and status
-- Remove devices from inventory
-- View all devices in a sortable table
-- Track device availability status
+- Add, edit and remove devices from inventory
+- Track comprehensive device information:
+  - Basic info (name, type, serial number, status)
+  - Purchase details (date, price, supplier, warranty)
+  - Technical specs (model, manufacturer, firmware)
+  - Asset tracking (tag, location, department)
+  - Lifecycle management (inspections, end-of-life)
+- View devices in a sortable and filterable table
+- Multiple status tracking (Available, In Use, Maintenance, Retired)
+- Condition monitoring (New, Good, Fair, Poor)
+- Search and filter devices by multiple criteria:
+  - Name/keyword search
+  - Status
+  - Condition
+  - Department
+  - Location
 
 ### Assignment Management
-- Assign devices to employees
-- Track who has which device
-- Record device returns
-- View complete assignment history
-- Filter assignments by status (Active/Returned)
-- Search assignments by employee or device
+- Assign devices to employees with expiration dates
+- Track complete device assignment history
+- View all devices assigned to an employee
+- Automatic status updates when devices are assigned/returned
+- Quick access to employee device history
+- Filter assignments by:
+  - Active/Returned status
+  - Employee
+  - Device
+  - Department
+- Expiration date tracking and notifications
+
+### Maintenance Management
+- Schedule and track device maintenance
+- Multiple maintenance types (Repair, Inspection, Upgrade, Replacement, Cleaning)
+- Track maintenance costs and status
+- Detailed maintenance history per device
+- Schedule future maintenance tasks
+- Filter maintenance records by:
+  - Status (Pending, Scheduled, In Progress, Completed)
+  - Device
+  - Type
+- Cost tracking and reporting
 
 ### User Interface
-- Modern, intuitive interface
-- Easy-to-use navigation sidebar
-- Quick search and filter capabilities
-- Clear status indicators
-- Responsive table views
-- User-friendly forms and dialogs
+- Modern dark theme with professional design
+- Intuitive navigation sidebar
+- Advanced search and filter capabilities
+- Interactive data tables with:
+  - Sorting by any column
+  - Multi-criteria filtering
+  - Quick search
+- User-friendly forms with validation
+- Responsive layout design
+- Clear status indicators and icons
+
+### Reporting & Analytics
+- Generate various reports:
+  - Device inventory status
+  - Maintenance history
+  - Assignment tracking
+  - Usage statistics
+- Export reports in multiple formats:
+  - PDF
+  - Excel
+  - CSV
+- Customizable report settings
+- Auto-generate scheduled reports
+
+### System Settings
+- Configurable system preferences:
+  - Language settings
+  - Theme options
+  - Notification preferences
+- Database configuration:
+  - Multiple database support (H2, SQLite)
+  - Automatic backups
+  - Backup location configuration
+- Report customization:
+  - Default format selection
+  - Logo inclusion options
+  - Auto-generation scheduling
 
 ## Technical Stack
 
@@ -71,6 +130,9 @@ mvn clean package
 ```
 
 ### Run
+```bash
+mvn clean compile exec:java
+```
 ```bash
 java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
