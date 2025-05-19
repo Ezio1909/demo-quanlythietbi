@@ -22,7 +22,6 @@ public class DeviceManagementPanel extends JPanel {
     private final DeviceManagementAdapter adapter;
     private SortableTable deviceTable;
     private DefaultTableModel tableModel;
-    private JTextField searchField;
 
     public DeviceManagementPanel(DeviceManagementAdapter adapter) {
         this.adapter = adapter;
@@ -32,22 +31,11 @@ public class DeviceManagementPanel extends JPanel {
     }
 
     private void initializeComponents() {
-        // Top panel with search and buttons
-        JPanel topPanel = new JPanel(new BorderLayout(10, 10));
+        // Top panel with buttons
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
 
-        // Search panel
-        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        searchPanel.add(new JLabel("Search by Device Name:"));
-        searchField = new JTextField(20);
-        searchField.getDocument().addDocumentListener(new SimpleDocumentListener(
-            () -> deviceTable.addFilter("Name", searchField.getText())
-        ));
-        searchPanel.add(searchField);
-        topPanel.add(searchPanel, BorderLayout.WEST);
-
-        // Buttons panel
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        // Buttons
         JButton addButton = new JButton("Add Device");
         JButton editButton = new JButton("Edit Device");
         JButton deleteButton = new JButton("Delete Device");
@@ -56,10 +44,9 @@ public class DeviceManagementPanel extends JPanel {
         editButton.addActionListener(e -> showEditDeviceDialog());
         deleteButton.addActionListener(e -> deleteSelectedDevice());
         
-        buttonPanel.add(addButton);
-        buttonPanel.add(editButton);
-        buttonPanel.add(deleteButton);
-        topPanel.add(buttonPanel, BorderLayout.EAST);
+        topPanel.add(addButton);
+        topPanel.add(editButton);
+        topPanel.add(deleteButton);
 
         add(topPanel, BorderLayout.NORTH);
 
