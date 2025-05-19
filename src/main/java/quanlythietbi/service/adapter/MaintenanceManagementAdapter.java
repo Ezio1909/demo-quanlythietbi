@@ -19,6 +19,10 @@ public class MaintenanceManagementAdapter {
         this.maintenanceDAO = maintenanceDAO;
     }
 
+    public MaintenanceDAO getMaintenanceDAO() {
+        return maintenanceDAO;
+    }
+
     public List<MaintenanceRecord> getAllMaintenanceRecords() {
         try {
             return maintenanceDAO.findAll();

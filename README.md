@@ -133,6 +133,37 @@ mvn clean package
 ```bash
 mvn clean compile exec:java
 ```
+
+## Running with MySQL using Docker Compose
+
+### 1. Start MySQL with Docker Compose
+
+```bash
+docker-compose up -d
+```
+
+- This will start a MySQL 8.0 instance with:
+  - Database: `devicedb`
+  - User: `devuser`
+  - Password: `devpass`
+  - Root password: `secret`
+- The schema and sample data will be initialized automatically from `mysql-init/schema.sql`.
+
+### 2. Configure the Application
+
+- The application is pre-configured to use MySQL if you set `DBType.MYSQL` in your code (see `DeviceManagementApplication.java`).
+- The MySQL JDBC URL is: `jdbc:mysql://localhost:3306/devicedb?useSSL=false&serverTimezone=UTC`
+- User: `devuser`, Password: `devpass`
+
+### 3. Build and Run the Application
+
+```bash
+mvn clean package
+mvn clean compile exec:java
+```
+
+Or run the JAR:
+
 ```bash
 java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
