@@ -19,6 +19,7 @@ public class ConnectionFactory implements IConnectionFactory {
         switch (dbType) {
             case H2 -> factory = new H2ConnectionFactoryImpl();
             case SQLITE -> factory = new SQLiteConnectionFactoryImpl();
+            case MYSQL -> factory = new MySQLConnectionFactoryImpl();
         }
         return factory.getConnection();
     }

@@ -1,3 +1,11 @@
+-- DEV/DEMO RESET: Truncate all tables and reset auto-increment counters
+SET FOREIGN_KEY_CHECKS = 0;
+TRUNCATE TABLE device_assignments;
+TRUNCATE TABLE device_maintenance;
+TRUNCATE TABLE devices;
+TRUNCATE TABLE employees;
+SET FOREIGN_KEY_CHECKS = 1;
+
 CREATE TABLE IF NOT EXISTS devices (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
@@ -79,12 +87,6 @@ CREATE TABLE IF NOT EXISTS device_maintenance (
     FOREIGN KEY (device_id) REFERENCES devices(id)
 );
 
--- Clear tables before inserting sample data (for dev/demo)
-DELETE FROM device_assignments;
-DELETE FROM device_maintenance;
-DELETE FROM devices;
-DELETE FROM employees;
-
 -- Insert unique sample employees with explicit IDs
 INSERT INTO employees (id, name, email, department, position, phone, hire_date, employee_id_number, status) VALUES
 (1, 'John Smith', 'john.smith1@company.com', 'IT', 'Senior Developer', '123-456-7890', '2022-01-15', 'EMP001', 'Active'),
@@ -134,47 +136,57 @@ INSERT INTO device_maintenance (device_id, maintenance_type, description, report
 
 -- TRIGGERS FOR DEVICE STATUS SYNCHRONIZATION
 
--- Set device status to 'In Use' when a new active assignment is inserted
-CREATE TRIGGER IF NOT EXISTS trg_assignment_insert
+DELIMITER //
+CREATE TRIGGER trg_assignment_insert
 AFTER INSERT ON device_assignments
 FOR EACH ROW
-WHEN (NEW.status = 'Active')
 BEGIN
-    UPDATE devices SET status = 'In Use' WHERE id = NEW.device_id;
-END;
+    IF NEW.status = 'Active' THEN
+        UPDATE devices SET status = 'In Use' WHERE id = NEW.device_id;
+    END IF;
+END;//
+DELIMITER ;
 
--- Set device status to 'Available' when an assignment is returned
-CREATE TRIGGER IF NOT EXISTS trg_assignment_returned
+DELIMITER //
+CREATE TRIGGER trg_assignment_returned
 AFTER UPDATE ON device_assignments
 FOR EACH ROW
-WHEN (NEW.status = 'Returned' AND OLD.status != 'Returned')
 BEGIN
-    UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
-END;
+    IF NEW.status = 'Returned' AND OLD.status != 'Returned' THEN
+        UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
+    END IF;
+END;//
+DELIMITER ;
 
--- Set device status to 'Maintenance' when a new maintenance record is inserted with status 'Pending', 'Scheduled', or 'In Progress'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_insert
+DELIMITER //
+CREATE TRIGGER trg_maintenance_insert
 AFTER INSERT ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status IN ('Pending', 'Scheduled', 'In Progress'))
 BEGIN
-    UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
-END;
+    IF NEW.status IN ('Pending', 'Scheduled', 'In Progress') THEN
+        UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
+    END IF;
+END;//
+DELIMITER ;
 
--- Set device status to 'Maintenance' when a maintenance record is updated to 'Pending', 'Scheduled', or 'In Progress'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_update_to_maintenance
+DELIMITER //
+CREATE TRIGGER trg_maintenance_update_to_maintenance
 AFTER UPDATE ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status IN ('Pending', 'Scheduled', 'In Progress') AND OLD.status != NEW.status)
 BEGIN
-    UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
-END;
+    IF NEW.status IN ('Pending', 'Scheduled', 'In Progress') AND OLD.status != NEW.status THEN
+        UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
+    END IF;
+END;//
+DELIMITER ;
 
--- Set device status to 'Available' when maintenance is updated to 'Completed'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_completed
+DELIMITER //
+CREATE TRIGGER trg_maintenance_completed
 AFTER UPDATE ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status = 'Completed' AND OLD.status != 'Completed')
 BEGIN
-    UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
-END; 
+    IF NEW.status = 'Completed' AND OLD.status != 'Completed' THEN
+        UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
+    END IF;
+END;//
+DELIMITER ; 

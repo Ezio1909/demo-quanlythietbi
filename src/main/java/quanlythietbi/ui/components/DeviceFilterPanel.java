@@ -14,12 +14,12 @@ public class DeviceFilterPanel extends JPanel {
 
     public DeviceFilterPanel(
             String[] statuses,
-            String[] conditions,
+            String[] deviceConditions,
             String[] departments,
             String[] locations,
             Consumer<String> onNameFilter,
             Consumer<String> onStatusFilter,
-            Consumer<String> onConditionFilter,
+            Consumer<String> onDeviceConditionFilter,
             Consumer<String> onDepartmentFilter,
             Consumer<String> onLocationFilter) {
         
@@ -58,10 +58,10 @@ public class DeviceFilterPanel extends JPanel {
         gbc.gridy = 1;
         add(new JLabel("Condition:"), gbc);
         
-        conditionCombo = new JComboBox<>(addEmptyOption(conditions));
+        conditionCombo = new JComboBox<>(addEmptyOption(deviceConditions));
         conditionCombo.addActionListener(e -> {
             String selected = (String) conditionCombo.getSelectedItem();
-            onConditionFilter.accept("".equals(selected) ? null : selected);
+            onDeviceConditionFilter.accept("".equals(selected) ? null : selected);
         });
         gbc.gridx = 1;
         add(conditionCombo, gbc);

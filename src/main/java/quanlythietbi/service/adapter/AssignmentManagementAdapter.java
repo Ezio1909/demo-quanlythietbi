@@ -125,6 +125,37 @@ public class AssignmentManagementAdapter {
                 "Active"
             );
             assignmentDAO.insert(assignment);
+
+            // Update device status to 'In Use'
+            var updatedDevice = new quanlythietbi.entity.DeviceInfoRecord(
+                device.get().id(),
+                device.get().name(),
+                device.get().type(),
+                device.get().serialNumber(),
+                "In Use",
+                device.get().purchaseDate(),
+                device.get().purchasePrice(),
+                device.get().supplier(),
+                device.get().warrantyExpiry(),
+                device.get().model(),
+                device.get().manufacturer(),
+                device.get().specifications(),
+                device.get().firmwareVersion(),
+                device.get().assetTag(),
+                device.get().location(),
+                device.get().department(),
+                device.get().category(),
+                device.get().lastInspectionDate(),
+                device.get().nextInspectionDate(),
+                device.get().endOfLifeDate(),
+                device.get().deviceCondition(),
+                device.get().notes(),
+                device.get().createdAt(),
+                LocalDateTime.now(),
+                device.get().createdBy(),
+                "system"
+            );
+            deviceDAO.update(updatedDevice);
         } catch (SQLException e) {
             logger.error("Failed to assign device {} to employee {}", deviceId, employeeId, e);
             throw new IllegalArgumentException("Failed to assign device: " + e.getMessage());
@@ -133,7 +164,48 @@ public class AssignmentManagementAdapter {
 
     public void returnDevice(Integer assignmentId) {
         try {
+            // Get assignment and device
+            var assignmentOpt = assignmentDAO.findById(assignmentId);
+            if (assignmentOpt.isEmpty()) {
+                throw new IllegalArgumentException("Assignment not found with ID: " + assignmentId);
+            }
+            var assignment = assignmentOpt.get();
             assignmentDAO.returnDevice(assignmentId);
+
+            // Update device status to 'Available'
+            var deviceOpt = deviceDAO.findById(assignment.deviceId());
+            if (deviceOpt.isPresent()) {
+                var device = deviceOpt.get();
+                var updatedDevice = new quanlythietbi.entity.DeviceInfoRecord(
+                    device.id(),
+                    device.name(),
+                    device.type(),
+                    device.serialNumber(),
+                    "Available",
+                    device.purchaseDate(),
+                    device.purchasePrice(),
+                    device.supplier(),
+                    device.warrantyExpiry(),
+                    device.model(),
+                    device.manufacturer(),
+                    device.specifications(),
+                    device.firmwareVersion(),
+                    device.assetTag(),
+                    device.location(),
+                    device.department(),
+                    device.category(),
+                    device.lastInspectionDate(),
+                    device.nextInspectionDate(),
+                    device.endOfLifeDate(),
+                    device.deviceCondition(),
+                    device.notes(),
+                    device.createdAt(),
+                    LocalDateTime.now(),
+                    device.createdBy(),
+                    "system"
+                );
+                deviceDAO.update(updatedDevice);
+            }
         } catch (SQLException e) {
             logger.error("Failed to return device for assignment id: {}", assignmentId, e);
         }

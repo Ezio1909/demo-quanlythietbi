@@ -83,7 +83,7 @@ public class DeviceManagementPanel extends JPanel {
         
         for (DeviceInfoRecord device : devices) {
             if (device.status() != null) statuses.add(device.status());
-            if (device.condition() != null) conditions.add(device.condition());
+            if (device.deviceCondition() != null) conditions.add(device.deviceCondition());
             if (device.department() != null) departments.add(device.department());
             if (device.location() != null) locations.add(device.location());
         }
@@ -408,7 +408,7 @@ public class DeviceManagementPanel extends JPanel {
             JTextField endOfLifeField = new JTextField(device.endOfLifeDate() != null ? 
                 device.endOfLifeDate().format(DATE_FORMATTER) : "", 10);
             JComboBox<String> conditionCombo = new JComboBox<>(new String[]{"New", "Good", "Fair", "Poor"});
-            conditionCombo.setSelectedItem(device.condition());
+            conditionCombo.setSelectedItem(device.deviceCondition());
             JTextArea notesArea = new JTextArea(device.notes(), 4, 30);
 
             // Add date format tooltips
@@ -535,7 +535,7 @@ public class DeviceManagementPanel extends JPanel {
                 device.manufacturer(),
                 device.location(),
                 device.department(),
-                device.condition(),
+                device.deviceCondition(),
                 device.assetTag()
             };
             tableModel.addRow(row);

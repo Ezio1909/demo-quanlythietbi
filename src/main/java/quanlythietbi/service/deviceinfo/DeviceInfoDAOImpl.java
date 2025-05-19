@@ -35,7 +35,7 @@ public class DeviceInfoDAOImpl implements DeviceInfoDAO {
     private static final String COL_LAST_INSPECTION = "last_inspection_date";
     private static final String COL_NEXT_INSPECTION = "next_inspection_date";
     private static final String COL_END_OF_LIFE = "end_of_life_date";
-    private static final String COL_CONDITION = "condition";
+    private static final String COL_CONDITION = "device_condition";
     private static final String COL_NOTES = "notes";
     private static final String COL_CREATED_AT = "created_at";
     private static final String COL_UPDATED_AT = "updated_at";
@@ -123,7 +123,7 @@ public class DeviceInfoDAOImpl implements DeviceInfoDAO {
                     model, manufacturer, specifications, firmware_version,
                     asset_tag, location, department, category,
                     last_inspection_date, next_inspection_date, end_of_life_date,
-                    condition, notes, created_by, last_modified_by
+                    device_condition, notes, created_by, last_modified_by
                 ) VALUES (
                     ?, ?, ?, ?,
                     ?, ?, ?, ?,
@@ -159,7 +159,7 @@ public class DeviceInfoDAOImpl implements DeviceInfoDAO {
             setDateOrNull(stmt, paramIndex++, device.nextInspectionDate());
             setDateOrNull(stmt, paramIndex++, device.endOfLifeDate());
             
-            stmt.setString(paramIndex++, device.condition());
+            stmt.setString(paramIndex++, device.deviceCondition());
             stmt.setString(paramIndex++, device.notes());
             stmt.setString(paramIndex++, device.createdBy());
             stmt.setString(paramIndex++, device.lastModifiedBy());
@@ -179,7 +179,7 @@ public class DeviceInfoDAOImpl implements DeviceInfoDAO {
                     model = ?, manufacturer = ?, specifications = ?, firmware_version = ?,
                     asset_tag = ?, location = ?, department = ?, category = ?,
                     last_inspection_date = ?, next_inspection_date = ?, end_of_life_date = ?,
-                    condition = ?, notes = ?, last_modified_by = ?, updated_at = CURRENT_TIMESTAMP
+                    device_condition = ?, notes = ?, last_modified_by = ?, updated_at = CURRENT_TIMESTAMP
                 WHERE id = ?
             """);
             
@@ -208,7 +208,7 @@ public class DeviceInfoDAOImpl implements DeviceInfoDAO {
             setDateOrNull(stmt, paramIndex++, device.nextInspectionDate());
             setDateOrNull(stmt, paramIndex++, device.endOfLifeDate());
             
-            stmt.setString(paramIndex++, device.condition());
+            stmt.setString(paramIndex++, device.deviceCondition());
             stmt.setString(paramIndex++, device.notes());
             stmt.setString(paramIndex++, device.lastModifiedBy());
             stmt.setInt(paramIndex++, device.id());

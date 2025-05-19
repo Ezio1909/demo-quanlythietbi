@@ -37,7 +37,7 @@ public class DeviceManagementApplication {
         SwingUtilities.invokeLater(() -> {
             try {
                 // Set up database connection
-                IConnectionManager connectionManager = new PooledConnectionManagerImpl(DBType.H2, 4);
+                IConnectionManager connectionManager = new PooledConnectionManagerImpl(DBType.MYSQL, 4);
                 
                 // Set up DAOs
                 DeviceInfoDAO deviceDAO = new DeviceInfoDAOImpl(connectionManager);

@@ -34,7 +34,7 @@ public record DeviceInfoRecord(
     LocalDate lastInspectionDate,
     LocalDate nextInspectionDate,
     LocalDate endOfLifeDate,
-    String condition,
+    String deviceCondition,
     String notes,
     
     // Timestamps and Audit

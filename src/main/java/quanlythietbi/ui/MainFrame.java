@@ -6,11 +6,15 @@ import java.awt.*;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
+import quanlythietbi.service.adapter.DashboardMetricsAdapter;
+import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
+import quanlythietbi.service.maintenance.MaintenanceDAO;
 
 public class MainFrame extends JFrame {
     private final DeviceManagementAdapter deviceAdapter;
     private final AssignmentManagementAdapter assignmentAdapter;
     private final MaintenanceManagementAdapter maintenanceAdapter;
+    private final DashboardMetricsAdapter dashboardAdapter;
     private CardLayout cardLayout;
     private JPanel contentPanel;
 
@@ -22,6 +26,10 @@ public class MainFrame extends JFrame {
         this.deviceAdapter = deviceAdapter;
         this.assignmentAdapter = assignmentAdapter;
         this.maintenanceAdapter = maintenanceAdapter;
+        this.dashboardAdapter = new DashboardMetricsAdapter(
+            deviceAdapter.getDeviceDAO(),
+            maintenanceAdapter.getMaintenanceDAO()
+        );
         initializeFrame();
     }
 
@@ -44,7 +52,7 @@ public class MainFrame extends JFrame {
         DeviceManagementPanel devicePanel = new DeviceManagementPanel(deviceAdapter);
         AssignmentPanel assignmentPanel = new AssignmentPanel(assignmentAdapter, deviceAdapter);
         MaintenancePanel maintenancePanel = new MaintenancePanel(maintenanceAdapter, deviceAdapter);
-        DashboardPanel dashboardPanel = new DashboardPanel();
+        DashboardPanel dashboardPanel = new DashboardPanel(dashboardAdapter);
         ReportsPanel reportsPanel = new ReportsPanel();
         SettingsPanel settingsPanel = new SettingsPanel();
 

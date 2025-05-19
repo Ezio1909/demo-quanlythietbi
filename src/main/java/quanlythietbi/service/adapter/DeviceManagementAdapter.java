@@ -19,6 +19,10 @@ public class DeviceManagementAdapter {
         this.deviceDAO = deviceDAO;
     }
 
+    public DeviceInfoDAO getDeviceDAO() {
+        return deviceDAO;
+    }
+
     public List<DeviceInfoRecord> getAllDevices() {
         try {
             return deviceDAO.findAll();
