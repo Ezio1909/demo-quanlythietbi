@@ -1,6 +1,8 @@
 package quanlythietbi.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.time.format.DateTimeFormatter;
@@ -11,8 +13,11 @@ import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.SwingUtilities;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 import quanlythietbi.entity.DeviceAssignmentRecord;
 import quanlythietbi.entity.EmployeeInfoRecord;
@@ -72,6 +77,25 @@ public class AssignmentPanel extends JPanel {
         };
         assignmentTable = new SortableTable(tableModel);
         
+        // Custom renderer for employee name column
+        TableColumn employeeColumn = assignmentTable.getColumnModel().getColumn(2);
+        employeeColumn.setCellRenderer(new DefaultTableCellRenderer() {
+            {
+                setToolTipText("Click to view all devices assigned to this employee");
+            }
+            
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value,
+                    boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                if (value != null) {
+                    setForeground(new Color(0, 102, 204)); // Blue color to indicate clickable
+                    setText("<html><u>" + value.toString() + "</u></html>"); // Underline text
+                }
+                return c;
+            }
+        });
+        
         // Add mouse listener for employee name clicks
         assignmentTable.addMouseListener(new java.awt.event.MouseAdapter() {
             @Override
@@ -90,6 +114,19 @@ public class AssignmentPanel extends JPanel {
                         .findFirst()
                         .ifPresent(employee -> showEmployeeDevicesDialog(employee));
                 }
+            }
+            
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                int col = assignmentTable.columnAtPoint(e.getPoint());
+                if (col == 2) { // Employee column
+                    assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+                }
+            }
+            
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) {
+                assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
             }
         });
 
