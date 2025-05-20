@@ -27,12 +27,14 @@ import quanlythietbi.ui.components.SortableTable;
 import quanlythietbi.ui.dialogs.AssignDeviceDialog;
 import quanlythietbi.ui.dialogs.EmployeeDevicesDialog;
 
-public class AssignmentPanel extends JPanel {
+public class AssignmentPanel extends JPanel implements RefreshablePanel {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final AssignmentManagementAdapter assignmentAdapter;
     private final DeviceManagementAdapter deviceAdapter;
     private SortableTable assignmentTable;
     private DefaultTableModel tableModel;
+    private javax.swing.Timer autoRefreshTimer;
+    private boolean autoRefreshEnabled = false;
 
     public AssignmentPanel(AssignmentManagementAdapter assignmentAdapter, DeviceManagementAdapter deviceAdapter) {
         this.assignmentAdapter = assignmentAdapter;
@@ -40,6 +42,21 @@ public class AssignmentPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         initializeComponents();
         refreshAssignmentTable();
+        // Add component listener for tab switch
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshAssignmentTable();
+                setAutoRefreshEnabled(true);
+            }
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                setAutoRefreshEnabled(false);
+            }
+        });
+        // Setup auto-refresh timer
+        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshAssignmentTable());
+        autoRefreshTimer.setRepeats(true);
     }
 
     private void initializeComponents() {
@@ -203,6 +220,21 @@ public class AssignmentPanel extends JPanel {
                     assignment.returnedAt().format(DATE_FORMATTER) : "",
                 assignment.status()
             });
+        }
+    }
+
+    @Override
+    public void refreshData() {
+        refreshAssignmentTable();
+    }
+
+    @Override
+    public void setAutoRefreshEnabled(boolean enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+        } else {
+            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
         }
     }
 } 

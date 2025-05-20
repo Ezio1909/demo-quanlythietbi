@@ -17,17 +17,34 @@ import quanlythietbi.ui.components.DeviceFilterPanel;
 import quanlythietbi.ui.components.SimpleDocumentListener;
 import quanlythietbi.ui.components.SortableTable;
 
-public class DeviceManagementPanel extends JPanel {
+public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final DeviceManagementAdapter adapter;
     private SortableTable deviceTable;
     private DefaultTableModel tableModel;
+    private javax.swing.Timer autoRefreshTimer;
+    private boolean autoRefreshEnabled = false;
 
     public DeviceManagementPanel(DeviceManagementAdapter adapter) {
         this.adapter = adapter;
         setLayout(new BorderLayout(10, 10));
         initializeComponents();
         refreshDeviceTable();
+        // Add component listener for tab switch
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshDeviceTable();
+                setAutoRefreshEnabled(true);
+            }
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                setAutoRefreshEnabled(false);
+            }
+        });
+        // Setup auto-refresh timer
+        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshDeviceTable());
+        autoRefreshTimer.setRepeats(true);
     }
 
     private void initializeComponents() {
@@ -539,6 +556,21 @@ public class DeviceManagementPanel extends JPanel {
                 device.assetTag()
             };
             tableModel.addRow(row);
+        }
+    }
+
+    @Override
+    public void refreshData() {
+        refreshDeviceTable();
+    }
+
+    @Override
+    public void setAutoRefreshEnabled(boolean enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+        } else {
+            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
         }
     }
 }

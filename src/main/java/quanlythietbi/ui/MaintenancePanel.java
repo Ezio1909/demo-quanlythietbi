@@ -10,15 +10,26 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import javax.swing.*;
+
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import quanlythietbi.entity.MaintenanceRecord;
-import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
+import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 import quanlythietbi.ui.components.DateTimePicker;
 
-public class MaintenancePanel extends JPanel {
+public class MaintenancePanel extends JPanel implements RefreshablePanel {
     private final MaintenanceManagementAdapter maintenanceAdapter;
     private final DeviceManagementAdapter deviceAdapter;
     private JTable maintenanceTable;
@@ -26,12 +37,29 @@ public class MaintenancePanel extends JPanel {
     private JButton addButton, editButton, deleteButton, completeButton;
     private JComboBox<String> statusFilter;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private javax.swing.Timer autoRefreshTimer;
+    private boolean autoRefreshEnabled = false;
 
     public MaintenancePanel(MaintenanceManagementAdapter maintenanceAdapter, DeviceManagementAdapter deviceAdapter) {
         this.maintenanceAdapter = maintenanceAdapter;
         this.deviceAdapter = deviceAdapter;
         setLayout(new BorderLayout());
         initializeComponents();
+        // Add component listener for tab switch
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshMaintenanceTable();
+                setAutoRefreshEnabled(true);
+            }
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                setAutoRefreshEnabled(false);
+            }
+        });
+        // Setup auto-refresh timer
+        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshMaintenanceTable());
+        autoRefreshTimer.setRepeats(true);
     }
 
     private void initializeComponents() {
@@ -472,6 +500,21 @@ public class MaintenancePanel extends JPanel {
                 record.status()
             };
             tableModel.addRow(row);
+        }
+    }
+
+    @Override
+    public void refreshData() {
+        refreshMaintenanceTable();
+    }
+
+    @Override
+    public void setAutoRefreshEnabled(boolean enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+        } else {
+            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
         }
     }
 } 
