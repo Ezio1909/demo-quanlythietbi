@@ -49,6 +49,30 @@ public class PooledConnectionManagerImpl implements IConnectionManager, AutoClos
         logger.info("All {} connections initialized (pool size: {}).", poolSize, poolSize);
     }
 
+    // New constructor for custom MySQL params
+    public PooledConnectionManagerImpl(DBType dbType, int poolSize, String host, String port, String db, String user, String password) {
+        connectionPool = new LinkedBlockingQueue<>(poolSize);
+        connectionFactory = new ConnectionFactory(dbType, host, port, db, user, password);
+
+        CompletableFuture<?>[] futures = new CompletableFuture[poolSize];
+        for (int i = 0; i < poolSize; i++) {
+            futures[i] = CompletableFuture.runAsync(() -> {
+                try {
+                    Connection connection = connectionFactory.getConnection();
+                    boolean isSuccessful = connectionPool.offer(connection);
+                    if (isSuccessful) {
+                        logger.info("Added connection: {}", connection);
+                    }
+                } catch (SQLException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }, executors);
+        }
+
+        CompletableFuture.allOf(futures).join();
+        logger.info("All {} connections initialized (pool size: {}).", poolSize, poolSize);
+    }
+
     @Override
     public <T> T doTask(IConnectionTask<T> task) {
         Connection conn = null;

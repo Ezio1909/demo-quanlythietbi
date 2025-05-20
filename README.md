@@ -206,6 +206,23 @@ Or run the JAR:
 java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
+## Database Configuration on Startup
+
+When you start the application, you will be prompted with a **Database Configuration** dialog. This allows you to enter the following MySQL connection details:
+
+- Host (default: `localhost`)
+- Port (default: `3306`)
+- Database name (default: `devicedb`)
+- Username (default: `devuser`)
+- Password (default: `devpass`)
+
+**Instruction shown in the dialog:**
+> If you are running MySQL using Docker Compose, you can keep the default values below.
+
+If you are using the provided Docker Compose setup, simply keep the prefilled values and click OK. Otherwise, enter your custom database information.
+
+If you cancel the dialog, the application will exit.
+
 ## Contributing
 
 1. Fork the repository
