@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 import javax.swing.BorderFactory;
@@ -32,6 +34,8 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
     
     private javax.swing.Timer autoRefreshTimer;
     private boolean autoRefreshEnabled = false;
+    private JLabel autoRefreshLabel;
+    private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     public DashboardPanel(DashboardMetricsAdapter metricsAdapter) {
         this.metricsAdapter = metricsAdapter;
@@ -66,7 +70,13 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
         JScrollPane scrollPane = new JScrollPane(contentPanel);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(new Color(240, 240, 240));
-        add(scrollPane, BorderLayout.CENTER);
+        
+        // Add border to content area
+        JPanel borderedContent = new JPanel(new BorderLayout());
+        borderedContent.setBorder(BorderFactory.createTitledBorder(""));
+        borderedContent.setBackground(new Color(240, 240, 240));
+        borderedContent.add(scrollPane, BorderLayout.CENTER);
+        add(borderedContent, BorderLayout.CENTER);
         
         // Add refresh button
         JButton refreshButton = new JButton("Refresh Dashboard");
@@ -75,6 +85,14 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
         buttonPanel.setBackground(new Color(240, 240, 240));
         buttonPanel.add(refreshButton);
         add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Add auto-refresh label at bottom right
+        autoRefreshLabel = new JLabel();
+        autoRefreshLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 20));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(autoRefreshLabel, BorderLayout.EAST);
+        add(bottomPanel, BorderLayout.SOUTH);
         
         // Initial load
         refreshDashboard();
@@ -145,6 +163,12 @@ public class DashboardPanel extends JPanel implements RefreshablePanel {
         statsPanel.repaint();
         chartsPanel.revalidate();
         chartsPanel.repaint();
+        
+        updateAutoRefreshLabel();
+    }
+    
+    private void updateAutoRefreshLabel() {
+        autoRefreshLabel.setText("Auto-refreshed at " + LocalDateTime.now().format(REFRESH_FORMATTER));
     }
     
     private JPanel createStatCard(String title, String value, String icon) {

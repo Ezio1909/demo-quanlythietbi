@@ -5,6 +5,8 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -24,6 +26,8 @@ public class SettingsPanel extends JPanel implements RefreshablePanel {
     
     private javax.swing.Timer autoRefreshTimer;
     private boolean autoRefreshEnabled = false;
+    private JLabel autoRefreshLabel;
+    private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
     public SettingsPanel() {
         setLayout(new BorderLayout());
@@ -35,42 +39,49 @@ public class SettingsPanel extends JPanel implements RefreshablePanel {
         titleLabel.setBorder(new EmptyBorder(20, 0, 20, 0));
         add(titleLabel, BorderLayout.NORTH);
         
+        // Create contentPanel with border and padding
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createTitledBorder(""));
+        contentPanel.setBackground(Color.WHITE);
+        
         // Create settings content
-        JPanel contentPanel = new JPanel();
-        contentPanel.setBackground(new Color(240, 240, 240));
-        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
-        contentPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+        JPanel settingsContent = new JPanel();
+        settingsContent.setBackground(new Color(240, 240, 240));
+        settingsContent.setLayout(new BoxLayout(settingsContent, BoxLayout.Y_AXIS));
+        settingsContent.setBorder(new EmptyBorder(20, 20, 20, 20));
         
         // Add settings sections
-        contentPanel.add(createSection("General Settings", new String[][]{
+        settingsContent.add(createSection("General Settings", new String[][]{
             {"Language", "English", "🌐"},
             {"Theme", "Light", "🎨"},
             {"Notifications", "Enabled", "🔔"}
         }));
         
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        settingsContent.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        contentPanel.add(createSection("Database Settings", new String[][]{
+        settingsContent.add(createSection("Database Settings", new String[][]{
             {"Database Type", "H2", "💾"},
             {"Auto Backup", "Daily", "🔄"},
             {"Backup Location", "/backup", "📁"}
         }));
         
-        contentPanel.add(Box.createRigidArea(new Dimension(0, 20)));
+        settingsContent.add(Box.createRigidArea(new Dimension(0, 20)));
         
-        contentPanel.add(createSection("Report Settings", new String[][]{
+        settingsContent.add(createSection("Report Settings", new String[][]{
             {"Default Format", "PDF", "📄"},
             {"Include Logo", "Yes", "🖼️"},
             {"Auto-generate Reports", "Weekly", "⏱️"}
         }));
         
         // Add content to scroll pane
-        JScrollPane scrollPane = new JScrollPane(contentPanel);
+        JScrollPane scrollPane = new JScrollPane(settingsContent);
         scrollPane.setBorder(null);
         scrollPane.getViewport().setBackground(new Color(240, 240, 240));
-        add(scrollPane, BorderLayout.CENTER);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
         
-        // Add bottom button panel
+        // Add bottom panel for auto-refresh label and buttons
+        autoRefreshLabel = new JLabel();
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.setBackground(new Color(240, 240, 240));
         buttonPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
@@ -93,7 +104,11 @@ public class SettingsPanel extends JPanel implements RefreshablePanel {
         buttonPanel.add(Box.createRigidArea(new Dimension(10, 0)));
         buttonPanel.add(saveButton);
         
-        add(buttonPanel, BorderLayout.SOUTH);
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(autoRefreshLabel, BorderLayout.EAST);
+        bottomPanel.add(buttonPanel, BorderLayout.WEST);
+        add(bottomPanel, BorderLayout.SOUTH);
         
         // Add component listener for tab switch
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -114,7 +129,12 @@ public class SettingsPanel extends JPanel implements RefreshablePanel {
     
     @Override
     public void refreshData() {
+        updateAutoRefreshLabel();
         // No-op for now, as this panel is mostly static
+    }
+    
+    private void updateAutoRefreshLabel() {
+        autoRefreshLabel.setText("Auto-refreshed at " + LocalDateTime.now().format(REFRESH_FORMATTER));
     }
     
     @Override
@@ -131,10 +151,7 @@ public class SettingsPanel extends JPanel implements RefreshablePanel {
         JPanel section = new JPanel();
         section.setBackground(CARD_BG);
         section.setLayout(new BoxLayout(section, BoxLayout.Y_AXIS));
-        section.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createTitledBorder(title),
-            BorderFactory.createEmptyBorder(10, 10, 10, 10)
-        ));
+        section.setBorder(new EmptyBorder(10, 10, 10, 10));
         
         for (String[] setting : settings) {
             JPanel row = new JPanel(new BorderLayout(10, 0));

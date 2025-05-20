@@ -1,20 +1,33 @@
 package quanlythietbi.ui;
 
-import java.awt.*;
-import java.awt.event.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+import java.awt.Insets;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
+import javax.swing.JTextField;
+import javax.swing.table.DefaultTableModel;
+
 import quanlythietbi.entity.DeviceInfoRecord;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.ui.components.DeviceFilterPanel;
-import quanlythietbi.ui.components.SimpleDocumentListener;
 import quanlythietbi.ui.components.SortableTable;
 
 public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
@@ -24,11 +37,26 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
     private DefaultTableModel tableModel;
     private javax.swing.Timer autoRefreshTimer;
     private boolean autoRefreshEnabled = false;
+    private JLabel autoRefreshLabel;
 
     public DeviceManagementPanel(DeviceManagementAdapter adapter) {
         this.adapter = adapter;
         setLayout(new BorderLayout(10, 10));
-        initializeComponents();
+        // Create contentPanel with border and padding
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createTitledBorder(""));
+        contentPanel.setBackground(Color.WHITE);
+        // Initialize and add components to contentPanel
+        JPanel centerPanel = initializeComponents();
+        contentPanel.add(centerPanel, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
+        // Add auto-refresh label at bottom right
+        autoRefreshLabel = new JLabel();
+        autoRefreshLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 20));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(autoRefreshLabel, BorderLayout.EAST);
+        add(bottomPanel, BorderLayout.SOUTH);
         refreshDeviceTable();
         // Add component listener for tab switch
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -47,7 +75,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
         autoRefreshTimer.setRepeats(true);
     }
 
-    private void initializeComponents() {
+    private JPanel initializeComponents() {
         // Top panel with buttons
         JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
@@ -64,8 +92,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
         topPanel.add(addButton);
         topPanel.add(editButton);
         topPanel.add(deleteButton);
-
-        add(topPanel, BorderLayout.NORTH);
 
         // Initialize table
         String[] columns = {
@@ -122,7 +148,8 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
         centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         centerPanel.add(filterPanel, BorderLayout.NORTH);
         centerPanel.add(scrollPane, BorderLayout.CENTER);
-        add(centerPanel, BorderLayout.CENTER);
+        centerPanel.add(topPanel, BorderLayout.SOUTH);
+        return centerPanel;
     }
 
     private JPanel createBasicInfoPanel(JTextField nameField, JTextField typeField, 
@@ -557,6 +584,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
             };
             tableModel.addRow(row);
         }
+        autoRefreshLabel.setText("Auto-refreshed at " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
     @Override

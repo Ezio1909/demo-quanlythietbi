@@ -1,19 +1,18 @@
 package quanlythietbi.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Frame;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -29,18 +28,73 @@ import quanlythietbi.ui.dialogs.EmployeeDevicesDialog;
 
 public class AssignmentPanel extends JPanel implements RefreshablePanel {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
+    private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     private final AssignmentManagementAdapter assignmentAdapter;
     private final DeviceManagementAdapter deviceAdapter;
     private SortableTable assignmentTable;
     private DefaultTableModel tableModel;
     private javax.swing.Timer autoRefreshTimer;
     private boolean autoRefreshEnabled = false;
+    private JLabel autoRefreshLabel;
 
     public AssignmentPanel(AssignmentManagementAdapter assignmentAdapter, DeviceManagementAdapter deviceAdapter) {
         this.assignmentAdapter = assignmentAdapter;
         this.deviceAdapter = deviceAdapter;
         setLayout(new BorderLayout(10, 10));
-        initializeComponents();
+        // Top panel with buttons
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+        JButton assignButton = new JButton("Assign Device");
+        JButton returnButton = new JButton("Return Device");
+        assignButton.addActionListener(e -> showAssignDeviceDialog());
+        returnButton.addActionListener(e -> returnSelectedDevice());
+        topPanel.add(assignButton);
+        topPanel.add(returnButton);
+        // Table
+        String[] columns = {
+            "ID", "Device", "Employee", "Department", "Assigned Date", "Expiration Date", "Returned Date", "Status"
+        };
+        tableModel = new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) { return false; }
+        };
+        assignmentTable = new SortableTable(tableModel);
+        TableColumn employeeColumn = assignmentTable.getColumnModel().getColumn(2);
+        employeeColumn.setCellRenderer(new DefaultTableCellRenderer() {{ setToolTipText("Click to view all devices assigned to this employee"); }});
+        assignmentTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent e) {
+                int row = assignmentTable.rowAtPoint(e.getPoint());
+                int col = assignmentTable.columnAtPoint(e.getPoint());
+                if (row >= 0 && col == 2) {
+                    String employeeName = (String) tableModel.getValueAt(row, col);
+                    String department = (String) tableModel.getValueAt(row, 3);
+                    List<EmployeeInfoRecord> employees = assignmentAdapter.getAllEmployees();
+                    employees.stream().filter(emp -> emp.name().equals(employeeName) && emp.department().equals(department)).findFirst().ifPresent(employee -> showEmployeeDevicesDialog(employee));
+                }
+            }
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent e) {
+                int col = assignmentTable.columnAtPoint(e.getPoint());
+                if (col == 2) assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent e) { assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR)); }
+        });
+        JScrollPane scrollPane = new JScrollPane(assignmentTable);
+        // Center panel with padding (like Device tab)
+        JPanel centerPanel = new JPanel(new BorderLayout());
+        centerPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        centerPanel.add(topPanel, BorderLayout.NORTH);
+        centerPanel.add(scrollPane, BorderLayout.CENTER);
+        add(centerPanel, BorderLayout.CENTER);
+        // Add auto-refresh label at bottom right
+        autoRefreshLabel = new JLabel();
+        autoRefreshLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 20));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(autoRefreshLabel, BorderLayout.EAST);
+        add(bottomPanel, BorderLayout.SOUTH);
         refreshAssignmentTable();
         // Add component listener for tab switch
         addComponentListener(new java.awt.event.ComponentAdapter() {
@@ -57,99 +111,6 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
         // Setup auto-refresh timer
         autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshAssignmentTable());
         autoRefreshTimer.setRepeats(true);
-    }
-
-    private void initializeComponents() {
-        // Top panel with buttons
-        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        topPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
-        
-        JButton assignButton = new JButton("Assign Device");
-        JButton returnButton = new JButton("Return Device");
-        
-        assignButton.addActionListener(e -> showAssignDeviceDialog());
-        returnButton.addActionListener(e -> returnSelectedDevice());
-        
-        topPanel.add(assignButton);
-        topPanel.add(returnButton);
-        add(topPanel, BorderLayout.NORTH);
-
-        // Table
-        String[] columns = {
-            "ID",
-            "Device",
-            "Employee",
-            "Department",
-            "Assigned Date",
-            "Expiration Date",
-            "Returned Date",
-            "Status"
-        };
-        
-        tableModel = new DefaultTableModel(columns, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        assignmentTable = new SortableTable(tableModel);
-        
-        // Custom renderer for employee name column
-        TableColumn employeeColumn = assignmentTable.getColumnModel().getColumn(2);
-        employeeColumn.setCellRenderer(new DefaultTableCellRenderer() {
-            {
-                setToolTipText("Click to view all devices assigned to this employee");
-            }
-            
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value,
-                    boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                if (value != null) {
-                    setForeground(new Color(0, 102, 204)); // Blue color to indicate clickable
-                    setText("<html><u>" + value.toString() + "</u></html>"); // Underline text
-                }
-                return c;
-            }
-        });
-        
-        // Add mouse listener for employee name clicks
-        assignmentTable.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseClicked(java.awt.event.MouseEvent e) {
-                int row = assignmentTable.rowAtPoint(e.getPoint());
-                int col = assignmentTable.columnAtPoint(e.getPoint());
-                
-                if (row >= 0 && col == 2) { // Employee column
-                    String employeeName = (String) tableModel.getValueAt(row, col);
-                    String department = (String) tableModel.getValueAt(row, 3);
-                    
-                    // Find employee by name and department
-                    List<EmployeeInfoRecord> employees = assignmentAdapter.getAllEmployees();
-                    employees.stream()
-                        .filter(emp -> emp.name().equals(employeeName) && emp.department().equals(department))
-                        .findFirst()
-                        .ifPresent(employee -> showEmployeeDevicesDialog(employee));
-                }
-            }
-            
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent e) {
-                int col = assignmentTable.columnAtPoint(e.getPoint());
-                if (col == 2) { // Employee column
-                    assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-                }
-            }
-            
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent e) {
-                assignmentTable.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-            }
-        });
-
-        JScrollPane scrollPane = new JScrollPane(assignmentTable);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
-        add(scrollPane, BorderLayout.CENTER);
     }
 
     private void showAssignDeviceDialog() {
@@ -221,6 +182,11 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
                 assignment.status()
             });
         }
+        updateAutoRefreshLabel();
+    }
+
+    private void updateAutoRefreshLabel() {
+        autoRefreshLabel.setText("Auto-refreshed at " + LocalDateTime.now().format(REFRESH_FORMATTER));
     }
 
     @Override

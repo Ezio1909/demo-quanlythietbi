@@ -11,6 +11,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
+import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -39,12 +40,28 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private javax.swing.Timer autoRefreshTimer;
     private boolean autoRefreshEnabled = false;
+    private JLabel autoRefreshLabel;
+    private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     public MaintenancePanel(MaintenanceManagementAdapter maintenanceAdapter, DeviceManagementAdapter deviceAdapter) {
         this.maintenanceAdapter = maintenanceAdapter;
         this.deviceAdapter = deviceAdapter;
         setLayout(new BorderLayout());
-        initializeComponents();
+        // Create contentPanel with border and padding
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBorder(BorderFactory.createTitledBorder(""));
+        contentPanel.setBackground(new java.awt.Color(255,255,255));
+        // Add auto-refresh label at bottom right
+        autoRefreshLabel = new JLabel();
+        autoRefreshLabel.setBorder(javax.swing.BorderFactory.createEmptyBorder(0, 0, 0, 20));
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setOpaque(false);
+        bottomPanel.add(autoRefreshLabel, BorderLayout.EAST);
+        add(bottomPanel, BorderLayout.SOUTH);
+        // Initialize and add components to contentPanel
+        JPanel mainContent = initializeComponents();
+        contentPanel.add(mainContent, BorderLayout.CENTER);
+        add(contentPanel, BorderLayout.CENTER);
         // Add component listener for tab switch
         addComponentListener(new java.awt.event.ComponentAdapter() {
             @Override
@@ -62,7 +79,7 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
         autoRefreshTimer.setRepeats(true);
     }
 
-    private void initializeComponents() {
+    private JPanel initializeComponents() {
         // Create toolbar
         JPanel toolBar = new JPanel(new FlowLayout(FlowLayout.LEFT));
         
@@ -106,8 +123,10 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
         JScrollPane scrollPane = new JScrollPane(maintenanceTable);
 
         // Add components
-        add(toolBar, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        JPanel mainContent = new JPanel(new BorderLayout());
+        mainContent.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        mainContent.add(toolBar, BorderLayout.NORTH);
+        mainContent.add(scrollPane, BorderLayout.CENTER);
 
         // Add listeners
         addButton.addActionListener(e -> showAddMaintenanceDialog());
@@ -117,6 +136,7 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
 
         // Initial data load
         refreshMaintenanceTable();
+        return mainContent;
     }
 
     private void showAddMaintenanceDialog() {
@@ -501,6 +521,11 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
             };
             tableModel.addRow(row);
         }
+        updateAutoRefreshLabel();
+    }
+
+    private void updateAutoRefreshLabel() {
+        autoRefreshLabel.setText("Auto-refreshed at " + LocalDateTime.now().format(REFRESH_FORMATTER));
     }
 
     @Override

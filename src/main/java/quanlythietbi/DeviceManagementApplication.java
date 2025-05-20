@@ -7,9 +7,9 @@ import javax.swing.UIManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import quanlythietbi.enums.DBType;
 import quanlythietbi.connector.IConnectionManager;
 import quanlythietbi.connector.PooledConnectionManagerImpl;
+import quanlythietbi.enums.DBType;
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
@@ -37,7 +37,7 @@ public class DeviceManagementApplication {
         SwingUtilities.invokeLater(() -> {
             try {
                 // Set up database connection
-                IConnectionManager connectionManager = new PooledConnectionManagerImpl(DBType.MYSQL, 4);
+                IConnectionManager connectionManager = new PooledConnectionManagerImpl(DBType.MYSQL, 16);
                 
                 // Set up DAOs
                 DeviceInfoDAO deviceDAO = new DeviceInfoDAOImpl(connectionManager);
