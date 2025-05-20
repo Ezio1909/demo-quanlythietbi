@@ -71,7 +71,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
             }
         });
         // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshDeviceTable());
+        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshDeviceTable());
         autoRefreshTimer.setRepeats(true);
     }
 

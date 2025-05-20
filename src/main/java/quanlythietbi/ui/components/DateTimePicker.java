@@ -1,13 +1,17 @@
 package quanlythietbi.ui.components;
 
-import com.toedter.calendar.JDateChooser;
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
+
+import javax.swing.JPanel;
+import javax.swing.JSpinner;
+import javax.swing.SpinnerDateModel;
+
+import com.toedter.calendar.JDateChooser;
 
 public class DateTimePicker extends JPanel {
     private final JDateChooser dateChooser;
@@ -24,7 +28,7 @@ public class DateTimePicker extends JPanel {
         // Initialize time spinner
         SpinnerDateModel timeModel = new SpinnerDateModel();
         timeSpinner = new JSpinner(timeModel);
-        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm");
+        JSpinner.DateEditor timeEditor = new JSpinner.DateEditor(timeSpinner, "HH:mm:ss");
         timeSpinner.setEditor(timeEditor);
         timeSpinner.setPreferredSize(new Dimension(70, 30));
 

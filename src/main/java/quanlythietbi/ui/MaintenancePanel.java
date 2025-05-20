@@ -75,7 +75,7 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
             }
         });
         // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshMaintenanceTable());
+        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshMaintenanceTable());
         autoRefreshTimer.setRepeats(true);
     }
 
@@ -521,7 +521,28 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
             records = maintenanceAdapter.getMaintenanceRecordsByStatus(selectedStatus);
         }
 
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
         for (MaintenanceRecord record : records) {
+            // Auto-update status to 'In Progress' if scheduled time has passed
+            if (("Pending".equals(record.status()) || "Scheduled".equals(record.status()))
+                && record.scheduledFor() != null
+                && !record.scheduledFor().isAfter(now)) {
+                MaintenanceRecord updated = new MaintenanceRecord(
+                    record.id(),
+                    record.deviceId(),
+                    record.deviceName(),
+                    record.maintenanceType(),
+                    record.description(),
+                    record.reportedAt(),
+                    record.scheduledFor(),
+                    record.completedAt(),
+                    record.cost(),
+                    "In Progress",
+                    record.notes()
+                );
+                maintenanceAdapter.updateMaintenanceRecord(updated);
+                record = updated;
+            }
             Object[] row = {
                 record.id(),
                 record.deviceName(),
