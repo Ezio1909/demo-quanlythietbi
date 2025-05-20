@@ -10,6 +10,9 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -38,7 +41,7 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
     private JButton addButton, editButton, deleteButton, completeButton;
     private JComboBox<String> statusFilter;
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
-    private javax.swing.Timer autoRefreshTimer;
+    private ScheduledExecutorService autoRefreshExecutor;
     private boolean autoRefreshEnabled = false;
     private JLabel autoRefreshLabel;
     private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
@@ -74,9 +77,8 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
                 setAutoRefreshEnabled(false);
             }
         });
-        // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshMaintenanceTable());
-        autoRefreshTimer.setRepeats(true);
+        // Setup auto-refresh executor
+        autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     private JPanel initializeComponents() {
@@ -511,16 +513,23 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
     }
 
     private void refreshMaintenanceTable() {
-        tableModel.setRowCount(0);
         String selectedStatus = (String) statusFilter.getSelectedItem();
-        
         List<MaintenanceRecord> records;
         if ("All".equals(selectedStatus)) {
             records = maintenanceAdapter.getAllMaintenanceRecords();
         } else {
             records = maintenanceAdapter.getMaintenanceRecordsByStatus(selectedStatus);
         }
+        refreshMaintenanceTable(records);
+    }
 
+    private void refreshMaintenanceTable(List<MaintenanceRecord> records) {
+        int selectedRow = maintenanceTable.getSelectedRow();
+        Integer selectedId = null;
+        if (selectedRow != -1) {
+            selectedId = (Integer) tableModel.getValueAt(selectedRow, 0);
+        }
+        tableModel.setRowCount(0);
         java.time.LocalDateTime now = java.time.LocalDateTime.now();
         for (MaintenanceRecord record : records) {
             // Auto-update status to 'In Progress' if scheduled time has passed
@@ -558,6 +567,15 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
             };
             tableModel.addRow(row);
         }
+        // Restore selection
+        if (selectedId != null) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                if (tableModel.getValueAt(i, 0).equals(selectedId)) {
+                    maintenanceTable.setRowSelectionInterval(i, i);
+                    break;
+                }
+            }
+        }
         updateAutoRefreshLabel();
     }
 
@@ -574,9 +592,19 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
     public void setAutoRefreshEnabled(boolean enabled) {
         this.autoRefreshEnabled = enabled;
         if (enabled) {
-            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+            autoRefreshExecutor.scheduleAtFixedRate(() -> {
+                List<MaintenanceRecord> records;
+                String selectedStatus = (String) statusFilter.getSelectedItem();
+                if ("All".equals(selectedStatus)) {
+                    records = maintenanceAdapter.getAllMaintenanceRecords();
+                } else {
+                    records = maintenanceAdapter.getMaintenanceRecordsByStatus(selectedStatus);
+                }
+                SwingUtilities.invokeLater(() -> refreshMaintenanceTable(records));
+            }, 0, 1, TimeUnit.SECONDS);
         } else {
-            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
+            autoRefreshExecutor.shutdownNow();
+            autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
         }
     }
 } 

@@ -70,4 +70,44 @@ public class DeviceManagementAdapter {
             logger.error("Failed to delete device with id: {}", id, e);
         }
     }
+
+    public void retireDevice(Integer id) {
+        try {
+            Optional<DeviceInfoRecord> deviceOpt = deviceDAO.findById(id);
+            if (deviceOpt.isPresent()) {
+                DeviceInfoRecord device = deviceOpt.get();
+                DeviceInfoRecord retiredDevice = new DeviceInfoRecord(
+                    device.id(),
+                    device.name(),
+                    device.type(),
+                    device.serialNumber(),
+                    "Retired",
+                    device.purchaseDate(),
+                    device.purchasePrice(),
+                    device.supplier(),
+                    device.warrantyExpiry(),
+                    device.model(),
+                    device.manufacturer(),
+                    device.specifications(),
+                    device.firmwareVersion(),
+                    device.assetTag(),
+                    device.location(),
+                    device.department(),
+                    device.category(),
+                    device.lastInspectionDate(),
+                    device.nextInspectionDate(),
+                    device.endOfLifeDate(),
+                    device.deviceCondition(),
+                    device.notes(),
+                    device.createdAt(),
+                    java.time.LocalDateTime.now(),
+                    device.createdBy(),
+                    "system"
+                );
+                deviceDAO.update(retiredDevice);
+            }
+        } catch (SQLException e) {
+            logger.error("Failed to retire device with id: {}", id, e);
+        }
+    }
 } 

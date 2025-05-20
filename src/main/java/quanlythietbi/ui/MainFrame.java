@@ -14,8 +14,8 @@ import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
 
 public class MainFrame extends JFrame {
     private final DeviceManagementAdapter deviceAdapter;
-    private final AssignmentManagementAdapter assignmentAdapter;
-    private final MaintenanceManagementAdapter maintenanceAdapter;
+    final AssignmentManagementAdapter assignmentAdapter;
+    final MaintenanceManagementAdapter maintenanceAdapter;
     private final DashboardMetricsAdapter dashboardAdapter;
     private CardLayout cardLayout;
     private JPanel contentPanel;
