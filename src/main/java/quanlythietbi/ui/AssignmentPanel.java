@@ -6,6 +6,9 @@ import java.awt.Frame;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -33,7 +36,7 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
     private final DeviceManagementAdapter deviceAdapter;
     private SortableTable assignmentTable;
     private DefaultTableModel tableModel;
-    private javax.swing.Timer autoRefreshTimer;
+    private ScheduledExecutorService autoRefreshExecutor;
     private boolean autoRefreshEnabled = false;
     private JLabel autoRefreshLabel;
 
@@ -108,9 +111,8 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
                 setAutoRefreshEnabled(false);
             }
         });
-        // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshAssignmentTable());
-        autoRefreshTimer.setRepeats(true);
+        // Setup auto-refresh executor
+        autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     private void showAssignDeviceDialog() {
@@ -173,9 +175,16 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
     }
 
     private void refreshAssignmentTable() {
+        refreshAssignmentTable(assignmentAdapter.getAllAssignments());
+    }
+
+    private void refreshAssignmentTable(List<DeviceAssignmentRecord> assignments) {
+        int selectedRow = assignmentTable.getSelectedRow();
+        Integer selectedId = null;
+        if (selectedRow != -1) {
+            selectedId = (Integer) tableModel.getValueAt(assignmentTable.convertRowIndexToModel(selectedRow), 0);
+        }
         tableModel.setRowCount(0);
-        List<DeviceAssignmentRecord> assignments = assignmentAdapter.getAllAssignments();
-        
         for (DeviceAssignmentRecord assignment : assignments) {
             tableModel.addRow(new Object[]{
                 assignment.id(),
@@ -188,6 +197,16 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
                     assignment.returnedAt().format(DATE_FORMATTER) : "",
                 assignment.status()
             });
+        }
+        // Restore selection
+        if (selectedId != null) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                if (tableModel.getValueAt(i, 0).equals(selectedId)) {
+                    int viewRow = assignmentTable.convertRowIndexToView(i);
+                    assignmentTable.setRowSelectionInterval(viewRow, viewRow);
+                    break;
+                }
+            }
         }
         updateAutoRefreshLabel();
     }
@@ -205,9 +224,13 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
     public void setAutoRefreshEnabled(boolean enabled) {
         this.autoRefreshEnabled = enabled;
         if (enabled) {
-            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+            autoRefreshExecutor.scheduleAtFixedRate(() -> {
+                List<DeviceAssignmentRecord> assignments = assignmentAdapter.getAllAssignments();
+                SwingUtilities.invokeLater(() -> refreshAssignmentTable(assignments));
+            }, 0, 1, TimeUnit.SECONDS);
         } else {
-            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
+            autoRefreshExecutor.shutdownNow();
+            autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
         }
     }
 } 

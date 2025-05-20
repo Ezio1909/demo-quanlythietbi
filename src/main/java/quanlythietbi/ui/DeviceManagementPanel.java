@@ -12,6 +12,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
@@ -23,6 +26,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
 import quanlythietbi.entity.DeviceInfoRecord;
@@ -35,7 +39,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
     private final DeviceManagementAdapter adapter;
     private SortableTable deviceTable;
     private DefaultTableModel tableModel;
-    private javax.swing.Timer autoRefreshTimer;
+    private ScheduledExecutorService autoRefreshExecutor;
     private boolean autoRefreshEnabled = false;
     private JLabel autoRefreshLabel;
 
@@ -70,9 +74,8 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                 setAutoRefreshEnabled(false);
             }
         });
-        // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshDeviceTable());
-        autoRefreshTimer.setRepeats(true);
+        // Setup auto-refresh executor
+        autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
     }
 
     private JPanel initializeComponents() {
@@ -565,11 +568,59 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
         }
 
         Integer deviceId = (Integer) tableModel.getValueAt(selectedRow, 0);
+        // First check if device is currently assigned
+        boolean isCurrentlyAssigned = false;
+        try {
+            MainFrame mainFrame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            var assignmentAdapter = mainFrame.assignmentAdapter;
+            isCurrentlyAssigned = assignmentAdapter.getAssignmentsByDevice(deviceId).stream()
+                .anyMatch(assignment -> "Active".equals(assignment.status()));
+        } catch (Exception ex) {
+            // fallback: allow delete if cannot check
+        }
+
+        if (isCurrentlyAssigned) {
+            JOptionPane.showMessageDialog(this,
+                "Cannot delete device: it is currently assigned to an employee.",
+                "Device In Use",
+                JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Then check for assignment/maintenance history
+        boolean hasAssignmentHistory = false;
+        boolean hasMaintenanceHistory = false;
+        try {
+            MainFrame mainFrame = (MainFrame) SwingUtilities.getWindowAncestor(this);
+            var assignmentAdapter = mainFrame.assignmentAdapter;
+            var maintenanceAdapter = mainFrame.maintenanceAdapter;
+            hasAssignmentHistory = !assignmentAdapter.getAssignmentsByDevice(deviceId).isEmpty();
+            hasMaintenanceHistory = !maintenanceAdapter.getMaintenanceRecordsByDevice(deviceId).isEmpty();
+        } catch (Exception ex) {
+            // fallback: allow delete if cannot check
+        }
+
+        if (hasAssignmentHistory || hasMaintenanceHistory) {
+            int option = JOptionPane.showOptionDialog(this,
+                "This device has assignment or maintenance history and cannot be deleted. Would you like to retire it instead?",
+                "Retire Device",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new Object[]{"Retire", "Cancel"},
+                "Retire");
+            if (option == JOptionPane.YES_OPTION) {
+                adapter.retireDevice(deviceId);
+                refreshDeviceTable();
+            }
+            return;
+        }
+
+        // If we get here, the device has no current assignment and no history
         int confirm = JOptionPane.showConfirmDialog(this,
             "Are you sure you want to delete this device?",
             "Confirm Delete",
             JOptionPane.YES_NO_OPTION);
-
         if (confirm == JOptionPane.YES_OPTION) {
             try {
                 adapter.deleteDevice(deviceId);
@@ -584,8 +635,17 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
     }
 
     private void refreshDeviceTable() {
+        refreshDeviceTable(adapter.getAllDevices());
+    }
+
+    private void refreshDeviceTable(List<DeviceInfoRecord> devices) {
+        int selectedRow = deviceTable.getSelectedRow();
+        Integer selectedId = null;
+        if (selectedRow != -1) {
+            selectedId = (Integer) tableModel.getValueAt(deviceTable.convertRowIndexToModel(selectedRow), 0);
+        }
         tableModel.setRowCount(0);
-        for (DeviceInfoRecord device : adapter.getAllDevices()) {
+        for (DeviceInfoRecord device : devices) {
             Object[] row = {
                 device.id(),
                 device.name(),
@@ -601,6 +661,16 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
             };
             tableModel.addRow(row);
         }
+        // Restore selection
+        if (selectedId != null) {
+            for (int i = 0; i < tableModel.getRowCount(); i++) {
+                if (tableModel.getValueAt(i, 0).equals(selectedId)) {
+                    int viewRow = deviceTable.convertRowIndexToView(i);
+                    deviceTable.setRowSelectionInterval(viewRow, viewRow);
+                    break;
+                }
+            }
+        }
         autoRefreshLabel.setText("Auto-refreshed at " + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
     }
 
@@ -613,9 +683,13 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
     public void setAutoRefreshEnabled(boolean enabled) {
         this.autoRefreshEnabled = enabled;
         if (enabled) {
-            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+            autoRefreshExecutor.scheduleAtFixedRate(() -> {
+                List<DeviceInfoRecord> devices = adapter.getAllDevices();
+                SwingUtilities.invokeLater(() -> refreshDeviceTable(devices));
+            }, 0, 1, TimeUnit.SECONDS);
         } else {
-            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
+            autoRefreshExecutor.shutdownNow();
+            autoRefreshExecutor = Executors.newSingleThreadScheduledExecutor();
         }
     }
 }
