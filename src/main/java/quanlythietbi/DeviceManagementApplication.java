@@ -57,6 +57,19 @@ public class DeviceManagementApplication {
                     DBType.MYSQL, 16, host, port, db, user, password
                 );
 
+                // Reset and re-seed the MySQL database
+                try {
+                    java.sql.Connection rawConn = connectionManager.doTask(conn -> conn);
+                    quanlythietbi.connector.DatabaseInitializer.initializeMySQLDatabase(rawConn);
+                } catch (Exception ex) {
+                    logger.error("Failed to initialize MySQL database", ex);
+                    JOptionPane.showMessageDialog(null,
+                        "Failed to initialize MySQL database: " + ex.getMessage(),
+                        "Database Error",
+                        JOptionPane.ERROR_MESSAGE);
+                    System.exit(1);
+                }
+
                 // Set up DAOs
                 DeviceInfoDAO deviceDAO = new DeviceInfoDAOImpl(connectionManager);
                 DeviceAssignmentDAO assignmentDAO = new DeviceAssignmentDAOImpl(connectionManager);

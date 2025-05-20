@@ -3,6 +3,7 @@ package quanlythietbi.connector.factory;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+
 import quanlythietbi.connector.DatabaseInitializer;
 
 public class H2ConnectionFactoryImpl implements IConnectionFactory {
@@ -17,7 +18,7 @@ public class H2ConnectionFactoryImpl implements IConnectionFactory {
         if (!initialized) {
             synchronized (H2ConnectionFactoryImpl.class) {
                 if (!initialized) {
-                    DatabaseInitializer.initializeDatabase(conn);
+                    DatabaseInitializer.initializeH2Database(conn);
                     initialized = true;
                 }
             }

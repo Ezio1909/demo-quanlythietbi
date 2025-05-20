@@ -185,15 +185,27 @@ docker-compose up -d
   - User: `devuser`
   - Password: `devpass`
   - Root password: `secret`
-- The schema and sample data will be initialized automatically from `mysql-init/schema.sql`
+- **Note:** Docker Compose no longer initializes the database with any SQL files. The database will be empty or persistent depending on your Docker volume.
 
-### 2. Configure the Application
+### 2. Application-Driven Database Initialization and Prefill
+
+- On every startup, the application will:
+  - Truncate all tables in the target MySQL database.
+  - Recreate the schema, triggers, and sample data using the bundled `schema.sql`.
+  - This ensures a fresh, demo-ready database every time, regardless of the MySQL instance or previous state.
+- If you want to fully reset the database (remove all persistent data), you can remove the Docker volume:
+
+```bash
+docker-compose down && docker volume rm demo-quanlythietbi_mysql_data && docker-compose up -d
+```
+
+### 3. Configure the Application
 
 - The application is pre-configured to use MySQL if you set `DBType.MYSQL` in your code
 - The MySQL JDBC URL is: `jdbc:mysql://localhost:3306/devicedb?useSSL=false&serverTimezone=UTC`
 - User: `devuser`, Password: `devpass`
 
-### 3. Build and Run the Application
+### 4. Build and Run the Application
 
 ```bash
 mvn clean package
