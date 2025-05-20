@@ -41,12 +41,8 @@ public class DeviceManagementAdapter {
         }
     }
 
-    public void addDevice(DeviceInfoRecord device) {
-        try {
-            deviceDAO.insert(device);
-        } catch (SQLException e) {
-            logger.error("Failed to add device: {}", device, e);
-        }
+    public void addDevice(DeviceInfoRecord device) throws SQLException {
+        deviceDAO.insert(device);
     }
 
     public void updateDevice(DeviceInfoRecord device) {
