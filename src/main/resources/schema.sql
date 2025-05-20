@@ -134,47 +134,54 @@ INSERT INTO device_maintenance (device_id, maintenance_type, description, report
 
 -- TRIGGERS FOR DEVICE STATUS SYNCHRONIZATION
 
--- Set device status to 'In Use' when a new active assignment is inserted
-CREATE TRIGGER IF NOT EXISTS trg_assignment_insert
+DELIMITER //
+DROP TRIGGER IF EXISTS trg_assignment_insert;//
+CREATE TRIGGER trg_assignment_insert
 AFTER INSERT ON device_assignments
 FOR EACH ROW
-WHEN (NEW.status = 'Active')
 BEGIN
-    UPDATE devices SET status = 'In Use' WHERE id = NEW.device_id;
-END;
+    IF NEW.status = 'Active' THEN
+        UPDATE devices SET status = 'In Use' WHERE id = NEW.device_id;
+    END IF;
+END//
 
--- Set device status to 'Available' when an assignment is returned
-CREATE TRIGGER IF NOT EXISTS trg_assignment_returned
+DROP TRIGGER IF EXISTS trg_assignment_returned;//
+CREATE TRIGGER trg_assignment_returned
 AFTER UPDATE ON device_assignments
 FOR EACH ROW
-WHEN (NEW.status = 'Returned' AND OLD.status != 'Returned')
 BEGIN
-    UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
-END;
+    IF NEW.status = 'Returned' AND OLD.status != 'Returned' THEN
+        UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
+    END IF;
+END//
 
--- Set device status to 'Maintenance' when a new maintenance record is inserted with status 'Pending', 'Scheduled', or 'In Progress'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_insert
+DROP TRIGGER IF EXISTS trg_maintenance_insert;//
+CREATE TRIGGER trg_maintenance_insert
 AFTER INSERT ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status IN ('Pending', 'Scheduled', 'In Progress'))
 BEGIN
-    UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
-END;
+    IF NEW.status IN ('Pending', 'Scheduled', 'In Progress') THEN
+        UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
+    END IF;
+END//
 
--- Set device status to 'Maintenance' when a maintenance record is updated to 'Pending', 'Scheduled', or 'In Progress'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_update_to_maintenance
+DROP TRIGGER IF EXISTS trg_maintenance_update_to_maintenance;//
+CREATE TRIGGER trg_maintenance_update_to_maintenance
 AFTER UPDATE ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status IN ('Pending', 'Scheduled', 'In Progress') AND OLD.status != NEW.status)
 BEGIN
-    UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
-END;
+    IF NEW.status IN ('Pending', 'Scheduled', 'In Progress') AND OLD.status != NEW.status THEN
+        UPDATE devices SET status = 'Maintenance' WHERE id = NEW.device_id;
+    END IF;
+END//
 
--- Set device status to 'Available' when maintenance is updated to 'Completed'
-CREATE TRIGGER IF NOT EXISTS trg_maintenance_completed
+DROP TRIGGER IF EXISTS trg_maintenance_completed;//
+CREATE TRIGGER trg_maintenance_completed
 AFTER UPDATE ON device_maintenance
 FOR EACH ROW
-WHEN (NEW.status = 'Completed' AND OLD.status != 'Completed')
 BEGIN
-    UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
-END; 
+    IF NEW.status = 'Completed' AND OLD.status != 'Completed' THEN
+        UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
+    END IF;
+END//
+DELIMITER ; 
