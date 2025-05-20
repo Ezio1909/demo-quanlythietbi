@@ -109,7 +109,7 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
             }
         });
         // Setup auto-refresh timer
-        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshAssignmentTable());
+        autoRefreshTimer = new javax.swing.Timer(1_000, e -> refreshAssignmentTable());
         autoRefreshTimer.setRepeats(true);
     }
 
