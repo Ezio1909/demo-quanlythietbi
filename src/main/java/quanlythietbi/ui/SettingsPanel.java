@@ -1,13 +1,29 @@
 package quanlythietbi.ui;
 
-import java.awt.*;
-import javax.swing.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.Font;
+
+import javax.swing.BorderFactory;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 
-public class SettingsPanel extends JPanel {
+public class SettingsPanel extends JPanel implements RefreshablePanel {
     private static final Color CARD_BG = new Color(255, 255, 255);
     private static final Color BORDER_COLOR = new Color(200, 200, 200);
     private static final Color BUTTON_BG = new Color(51, 122, 183);
+    
+    private javax.swing.Timer autoRefreshTimer;
+    private boolean autoRefreshEnabled = false;
     
     public SettingsPanel() {
         setLayout(new BorderLayout());
@@ -78,6 +94,37 @@ public class SettingsPanel extends JPanel {
         buttonPanel.add(saveButton);
         
         add(buttonPanel, BorderLayout.SOUTH);
+        
+        // Add component listener for tab switch
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            @Override
+            public void componentShown(java.awt.event.ComponentEvent e) {
+                refreshData();
+                setAutoRefreshEnabled(true);
+            }
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                setAutoRefreshEnabled(false);
+            }
+        });
+        // Setup auto-refresh timer (no-op for now)
+        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshData());
+        autoRefreshTimer.setRepeats(true);
+    }
+    
+    @Override
+    public void refreshData() {
+        // No-op for now, as this panel is mostly static
+    }
+    
+    @Override
+    public void setAutoRefreshEnabled(boolean enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+        } else {
+            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
+        }
     }
     
     private JPanel createSection(String title, String[][] settings) {

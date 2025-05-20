@@ -17,6 +17,12 @@ public class MainFrame extends JFrame {
     private final DashboardMetricsAdapter dashboardAdapter;
     private CardLayout cardLayout;
     private JPanel contentPanel;
+    private DeviceManagementPanel devicePanel;
+    private AssignmentPanel assignmentPanel;
+    private MaintenancePanel maintenancePanel;
+    private DashboardPanel dashboardPanel;
+    private ReportsPanel reportsPanel;
+    private SettingsPanel settingsPanel;
 
     public MainFrame(
         DeviceManagementAdapter deviceAdapter, 
@@ -45,16 +51,13 @@ public class MainFrame extends JFrame {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         
-        // Create sidebar
-        SidebarPanel sidebar = new SidebarPanel(contentPanel, cardLayout);
-        
         // Create and add content panels
-        DeviceManagementPanel devicePanel = new DeviceManagementPanel(deviceAdapter);
-        AssignmentPanel assignmentPanel = new AssignmentPanel(assignmentAdapter, deviceAdapter);
-        MaintenancePanel maintenancePanel = new MaintenancePanel(maintenanceAdapter, deviceAdapter);
-        DashboardPanel dashboardPanel = new DashboardPanel(dashboardAdapter);
-        ReportsPanel reportsPanel = new ReportsPanel();
-        SettingsPanel settingsPanel = new SettingsPanel();
+        devicePanel = new DeviceManagementPanel(deviceAdapter);
+        assignmentPanel = new AssignmentPanel(assignmentAdapter, deviceAdapter);
+        maintenancePanel = new MaintenancePanel(maintenanceAdapter, deviceAdapter);
+        dashboardPanel = new DashboardPanel(dashboardAdapter);
+        reportsPanel = new ReportsPanel();
+        settingsPanel = new SettingsPanel();
 
         contentPanel.add(devicePanel, "devices");
         contentPanel.add(assignmentPanel, "assignments");
@@ -62,6 +65,14 @@ public class MainFrame extends JFrame {
         contentPanel.add(dashboardPanel, "dashboard");
         contentPanel.add(reportsPanel, "reports");
         contentPanel.add(settingsPanel, "settings");
+
+        // Add sidebar with tab switch callback
+        SidebarPanel sidebar = new SidebarPanel(contentPanel, cardLayout) {
+            @Override
+            public void onTabSwitched(String cardName) {
+                setPanelAutoRefresh(cardName);
+            }
+        };
 
         // Add components to main container
         mainContainer.add(sidebar, BorderLayout.WEST);
@@ -74,5 +85,17 @@ public class MainFrame extends JFrame {
         setMinimumSize(new Dimension(1000, 600));
         pack();
         setLocationRelativeTo(null);
+
+        // Enable auto-refresh for the default panel
+        setPanelAutoRefresh("devices");
+    }
+
+    private void setPanelAutoRefresh(String cardName) {
+        devicePanel.setAutoRefreshEnabled("devices".equals(cardName));
+        assignmentPanel.setAutoRefreshEnabled("assignments".equals(cardName));
+        maintenancePanel.setAutoRefreshEnabled("maintenance".equals(cardName));
+        dashboardPanel.setAutoRefreshEnabled("dashboard".equals(cardName));
+        reportsPanel.setAutoRefreshEnabled("reports".equals(cardName));
+        settingsPanel.setAutoRefreshEnabled("settings".equals(cardName));
     }
 } 

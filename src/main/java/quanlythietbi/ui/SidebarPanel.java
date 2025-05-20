@@ -70,6 +70,10 @@ public class SidebarPanel extends JPanel {
         add(Box.createRigidArea(new Dimension(0, 5)));
     }
 
+    protected void onTabSwitched(String cardName) {
+        // Default: do nothing. MainFrame can override.
+    }
+
     private void selectButton(MenuButton button) {
         if (selectedButton != null) {
             selectedButton.setSelected(false);
@@ -79,6 +83,7 @@ public class SidebarPanel extends JPanel {
         button.setSelected(true);
         button.setBackground(SELECTED_BG);
         cardLayout.show(contentPanel, button.getCardName());
+        onTabSwitched(button.getCardName());
     }
 
     private class MenuButton extends JPanel {

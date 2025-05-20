@@ -21,7 +21,7 @@ import javax.swing.border.EmptyBorder;
 
 import quanlythietbi.service.adapter.DashboardMetricsAdapter;
 
-public class DashboardPanel extends JPanel {
+public class DashboardPanel extends JPanel implements RefreshablePanel {
     private static final Color CARD_BG = new Color(255, 255, 255);
     private static final Color BORDER_COLOR = new Color(200, 200, 200);
     private static final Color CHART_BG = new Color(240, 240, 240);
@@ -29,6 +29,9 @@ public class DashboardPanel extends JPanel {
     private final DashboardMetricsAdapter metricsAdapter;
     private JPanel statsPanel;
     private JPanel chartsPanel;
+    
+    private javax.swing.Timer autoRefreshTimer;
+    private boolean autoRefreshEnabled = false;
     
     public DashboardPanel(DashboardMetricsAdapter metricsAdapter) {
         this.metricsAdapter = metricsAdapter;
@@ -81,8 +84,17 @@ public class DashboardPanel extends JPanel {
             @Override
             public void componentShown(java.awt.event.ComponentEvent e) {
                 refreshDashboard();
+                setAutoRefreshEnabled(true);
+            }
+            @Override
+            public void componentHidden(java.awt.event.ComponentEvent e) {
+                setAutoRefreshEnabled(false);
             }
         });
+        
+        // Setup auto-refresh timer
+        autoRefreshTimer = new javax.swing.Timer(10_000, e -> refreshDashboard());
+        autoRefreshTimer.setRepeats(true);
     }
     
     private void refreshDashboard() {
@@ -203,5 +215,20 @@ public class DashboardPanel extends JPanel {
         card.add(dataPanel, BorderLayout.CENTER);
         
         return card;
+    }
+
+    @Override
+    public void refreshData() {
+        refreshDashboard();
+    }
+
+    @Override
+    public void setAutoRefreshEnabled(boolean enabled) {
+        this.autoRefreshEnabled = enabled;
+        if (enabled) {
+            if (!autoRefreshTimer.isRunning()) autoRefreshTimer.start();
+        } else {
+            if (autoRefreshTimer.isRunning()) autoRefreshTimer.stop();
+        }
     }
 } 
