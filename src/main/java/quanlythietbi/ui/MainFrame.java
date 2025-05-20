@@ -1,14 +1,16 @@
 package quanlythietbi.ui;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Dimension;
+
+import javax.swing.JFrame;
+import javax.swing.JPanel;
 
 import quanlythietbi.service.adapter.AssignmentManagementAdapter;
+import quanlythietbi.service.adapter.DashboardMetricsAdapter;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
-import quanlythietbi.service.adapter.DashboardMetricsAdapter;
-import quanlythietbi.service.deviceinfo.DeviceInfoDAO;
-import quanlythietbi.service.maintenance.MaintenanceDAO;
 
 public class MainFrame extends JFrame {
     private final DeviceManagementAdapter deviceAdapter;
@@ -21,8 +23,6 @@ public class MainFrame extends JFrame {
     private AssignmentPanel assignmentPanel;
     private MaintenancePanel maintenancePanel;
     private DashboardPanel dashboardPanel;
-    private ReportsPanel reportsPanel;
-    private SettingsPanel settingsPanel;
 
     public MainFrame(
         DeviceManagementAdapter deviceAdapter, 
@@ -56,15 +56,11 @@ public class MainFrame extends JFrame {
         assignmentPanel = new AssignmentPanel(assignmentAdapter, deviceAdapter);
         maintenancePanel = new MaintenancePanel(maintenanceAdapter, deviceAdapter);
         dashboardPanel = new DashboardPanel(dashboardAdapter);
-        reportsPanel = new ReportsPanel();
-        settingsPanel = new SettingsPanel();
 
         contentPanel.add(devicePanel, "devices");
         contentPanel.add(assignmentPanel, "assignments");
         contentPanel.add(maintenancePanel, "maintenance");
         contentPanel.add(dashboardPanel, "dashboard");
-        contentPanel.add(reportsPanel, "reports");
-        contentPanel.add(settingsPanel, "settings");
 
         // Add sidebar with tab switch callback
         SidebarPanel sidebar = new SidebarPanel(contentPanel, cardLayout) {
@@ -95,7 +91,5 @@ public class MainFrame extends JFrame {
         assignmentPanel.setAutoRefreshEnabled("assignments".equals(cardName));
         maintenancePanel.setAutoRefreshEnabled("maintenance".equals(cardName));
         dashboardPanel.setAutoRefreshEnabled("dashboard".equals(cardName));
-        reportsPanel.setAutoRefreshEnabled("reports".equals(cardName));
-        settingsPanel.setAutoRefreshEnabled("settings".equals(cardName));
     }
 } 

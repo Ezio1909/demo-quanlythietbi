@@ -50,12 +50,10 @@ public class SidebarPanel extends JPanel {
         add(titleLabel);
 
         // Add menu items
-        addMenuItem("📱 Devices", "devices");
-        addMenuItem("👥 Assignments", "assignments");
-        addMenuItem("🔧 Maintenance", "maintenance");
-        addMenuItem("📊 Dashboard", "dashboard");
-        addMenuItem("📋 Reports", "reports");
-        addMenuItem("⚙️ Settings", "settings");
+        addMenuItem("\uD83D\uDCF1 Devices", "devices");
+        addMenuItem("\uD83D\uDC65 Assignments", "assignments");
+        addMenuItem("\uD83D\uDD27 Maintenance", "maintenance");
+        addMenuItem("\uD83D\uDCCA Dashboard", "dashboard");
 
         // Select first button by default
         if (!buttons.isEmpty()) {

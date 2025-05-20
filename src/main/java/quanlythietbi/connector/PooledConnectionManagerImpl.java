@@ -1,11 +1,5 @@
 package quanlythietbi.connector;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import quanlythietbi.connector.factory.ConnectionFactory;
-import quanlythietbi.connector.factory.IConnectionFactory;
-import quanlythietbi.enums.DBType;
-
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.concurrent.BlockingQueue;
@@ -13,6 +7,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import quanlythietbi.connector.factory.ConnectionFactory;
+import quanlythietbi.connector.factory.IConnectionFactory;
+import quanlythietbi.enums.DBType;
 
 /**
  * Add pooled connection manager so client can execute multiple queries at the same time. <br>
@@ -45,7 +46,7 @@ public class PooledConnectionManagerImpl implements IConnectionManager, AutoClos
         }
 
         CompletableFuture.allOf(futures).join();
-        logger.info("All {} connections initialized.", poolSize);
+        logger.info("All {} connections initialized (pool size: {}).", poolSize, poolSize);
     }
 
     @Override
