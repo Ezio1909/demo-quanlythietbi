@@ -5,12 +5,10 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class SQLiteConnectionFactoryImpl implements IConnectionFactory {
-
-    private static final String urlString = "jdbc:sqlite:device_manager.db";
+    private static final String URL = "jdbc:sqlite:devicedb.db";
 
     @Override
     public Connection getConnection() throws SQLException {
-        return DriverManager.getConnection(urlString);
+        return DriverManager.getConnection(URL);
     }
-
 }

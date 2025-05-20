@@ -73,7 +73,6 @@ public class PooledConnectionManagerImpl implements IConnectionManager, AutoClos
         }
     }
 
-
     @Override
     public void close() {
         logger.info("Closing connection {}...", connectionPool);
