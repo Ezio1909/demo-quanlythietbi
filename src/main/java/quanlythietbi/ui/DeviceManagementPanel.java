@@ -7,6 +7,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.HashSet;
@@ -29,12 +30,16 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quanlythietbi.entity.DeviceInfoRecord;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.ui.components.DeviceFilterPanel;
 import quanlythietbi.ui.components.SortableTable;
 
 public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
+    private static final Logger logger = LoggerFactory.getLogger(DeviceManagementPanel.class);
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private final DeviceManagementAdapter adapter;
     private SortableTable deviceTable;
@@ -388,7 +393,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     manufacturerField.getText().trim(),
                     null,
                     null,
-                    assetTagField.getText().trim(),
+                    assetTagField.getText().trim().isEmpty() ? null : assetTagField.getText().trim(),
                     locationField.getText().trim(),
                     departmentField.getText().trim(),
                     categoryField.getText().trim(),
@@ -405,19 +410,31 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
 
                 adapter.addDevice(newDevice);
                 refreshDeviceTable();
-            } catch (Exception e) {
+            } catch (SQLException e) {
                 String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
                 if (msg.contains("duplicate") && msg.contains("serial_number")) {
                     JOptionPane.showMessageDialog(this, 
-                        "Cannot add due to duplicate serial number", 
-                        "Add Not Allowed", 
+                        "A device with this serial number already exists. Please use a unique serial number.", 
+                        "Duplicate Serial Number", 
+                        JOptionPane.ERROR_MESSAGE);
+                } else if (msg.contains("duplicate") && msg.contains("asset_tag")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "A device with this asset tag already exists. Please use a unique asset tag or leave it blank.", 
+                        "Duplicate Asset Tag", 
                         JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(this, 
-                        "An unexpected error occurred. Please try again.", 
-                        "Error", 
+                        "An error occurred while adding the device. Please check your input and try again.", 
+                        "Add Device Error", 
                         JOptionPane.ERROR_MESSAGE);
+                    logger.error("Error adding device", e);
                 }
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this, 
+                    "An unexpected error occurred. Please try again.", 
+                    "Error", 
+                    JOptionPane.ERROR_MESSAGE);
+                logger.error("Unexpected error in add device dialog", e);
             }
         }
     }
