@@ -1,13 +1,14 @@
 package quanlythietbi.connector;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import quanlythietbi.connector.factory.ConnectionFactory;
 import quanlythietbi.connector.factory.IConnectionFactory;
 import quanlythietbi.enums.DBType;
-
-import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * Provide a singleton thread-safe connection provider. Once the connection is created, it must be reused by other threads
@@ -31,7 +32,7 @@ import java.sql.SQLException;
  * 	3.	Assign the reference to singletonConnection <br>
  * 	Without volatile, the compiler could reorder steps 2 and 3, meaning: <br>
  * 	 - singletonConnection is set before the object is fully initialized <br>
- * 	 - Another thread reads the reference and accesses an object that’s half-baked → NullPointerException <br>
+ * 	 - Another thread reads the reference and accesses an object that's half-baked → NullPointerException <br>
  * volatile prevents this by enforcing happens-before rules: <br>
  * Writes <b>before</b> the volatile assignment (e.g. object construction) happen <b>before</b> any other thread can read it
  * */

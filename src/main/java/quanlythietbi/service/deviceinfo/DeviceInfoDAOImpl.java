@@ -1,12 +1,15 @@
 package quanlythietbi.service.deviceinfo;
 
-import java.sql.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.math.BigDecimal;
 
 import quanlythietbi.connector.IConnectionManager;
 import quanlythietbi.entity.DeviceInfoRecord;

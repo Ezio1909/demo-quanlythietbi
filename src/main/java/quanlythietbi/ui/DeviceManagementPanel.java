@@ -372,7 +372,7 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     new BigDecimal(purchasePriceField.getText().trim());
 
                 DeviceInfoRecord newDevice = new DeviceInfoRecord(
-                    null, // ID will be assigned by database
+                    null,
                     name,
                     type,
                     serial,
@@ -383,8 +383,8 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     warrantyExpiry,
                     modelField.getText().trim(),
                     manufacturerField.getText().trim(),
-                    null, // specifications
-                    null, // firmware version
+                    null,
+                    null,
                     assetTagField.getText().trim(),
                     locationField.getText().trim(),
                     departmentField.getText().trim(),
@@ -394,10 +394,10 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     endOfLife,
                     conditionCombo.getSelectedItem().toString(),
                     notesArea.getText().trim(),
-                    null, // created_at (set by database)
-                    null, // updated_at (set by database)
-                    "system", // created_by
-                    "system"  // last_modified_by
+                    null,
+                    null,
+                    "system",
+                    "system"
                 );
 
                 adapter.addDevice(newDevice);
@@ -431,7 +431,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
 
         Integer deviceId = (Integer) tableModel.getValueAt(selectedRow, 0);
         adapter.getDevice(deviceId).ifPresent(device -> {
-            // Create and populate form fields
             JTextField nameField = new JTextField(device.name(), 20);
             JTextField typeField = new JTextField(device.type(), 20);
             JTextField serialField = new JTextField(device.serialNumber(), 20);
@@ -463,14 +462,12 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
             conditionCombo.setSelectedItem(device.deviceCondition());
             JTextArea notesArea = new JTextArea(device.notes(), 4, 30);
 
-            // Add date format tooltips
             purchaseDateField.setToolTipText("Format: YYYY-MM-DD");
             warrantyExpiryField.setToolTipText("Format: YYYY-MM-DD");
             lastInspectionField.setToolTipText("Format: YYYY-MM-DD");
             nextInspectionField.setToolTipText("Format: YYYY-MM-DD");
             endOfLifeField.setToolTipText("Format: YYYY-MM-DD");
 
-            // Create tabbed pane
             JTabbedPane tabbedPane = new JTabbedPane();
             tabbedPane.addTab("Basic Info", createBasicInfoPanel(nameField, typeField, serialField, statusCombo, modelField, manufacturerField));
             tabbedPane.addTab("Purchase", createPurchaseInfoPanel(purchaseDateField, purchasePriceField, supplierField, warrantyExpiryField));
@@ -482,7 +479,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
 
             if (option == JOptionPane.OK_OPTION) {
                 try {
-                    // Validate required fields
                     String name = nameField.getText().trim();
                     String type = typeField.getText().trim();
                     String serial = serialField.getText().trim();
@@ -495,7 +491,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                         return;
                     }
 
-                    // Parse dates
                     LocalDate purchaseDate = purchaseDateField.getText().trim().isEmpty() ? null :
                         LocalDate.parse(purchaseDateField.getText().trim(), DATE_FORMATTER);
                     LocalDate warrantyExpiry = warrantyExpiryField.getText().trim().isEmpty() ? null :
@@ -507,7 +502,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     LocalDate endOfLife = endOfLifeField.getText().trim().isEmpty() ? null :
                         LocalDate.parse(endOfLifeField.getText().trim(), DATE_FORMATTER);
 
-                    // Parse purchase price
                     BigDecimal purchasePrice = purchasePriceField.getText().trim().isEmpty() ? null :
                         new BigDecimal(purchasePriceField.getText().trim());
 
@@ -523,8 +517,8 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                         warrantyExpiry,
                         modelField.getText().trim(),
                         manufacturerField.getText().trim(),
-                        device.specifications(), // keep existing specs
-                        device.firmwareVersion(), // keep existing firmware
+                        device.specifications(),
+                        device.firmwareVersion(),
                         assetTagField.getText().trim(),
                         locationField.getText().trim(),
                         departmentField.getText().trim(),
@@ -534,10 +528,10 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                         endOfLife,
                         conditionCombo.getSelectedItem().toString(),
                         notesArea.getText().trim(),
-                        device.createdAt(), // keep original creation time
-                        null, // updated_at will be set by database
-                        device.createdBy(), // keep original creator
-                        "system" // last_modified_by
+                        device.createdAt(),
+                        null,
+                        device.createdBy(),
+                        "system"
                     );
 
                     adapter.updateDevice(updatedDevice);
@@ -581,7 +575,6 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                 adapter.deleteDevice(deviceId);
                 refreshDeviceTable();
             } catch (RuntimeException ex) {
-                // Show user-friendly error if it's a constraint violation
                 JOptionPane.showMessageDialog(this,
                     "Cannot delete due to device being used",
                     "Delete Not Allowed",
