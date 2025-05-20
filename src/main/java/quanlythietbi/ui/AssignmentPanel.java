@@ -160,8 +160,15 @@ public class AssignmentPanel extends JPanel implements RefreshablePanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            assignmentAdapter.returnDevice(assignmentId);
-            refreshAssignmentTable();
+            try {
+                assignmentAdapter.returnDevice(assignmentId);
+                refreshAssignmentTable();
+            } catch (Exception e) {
+                JOptionPane.showMessageDialog(this,
+                    "An unexpected error occurred. Please try again.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

@@ -275,10 +275,18 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
                     JOptionPane.ERROR_MESSAGE);
                 costField.requestFocus();
             } catch (Exception ex) {
-                JOptionPane.showMessageDialog(dialog,
-                    "Error: " + ex.getMessage(),
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+                String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+                if (msg.contains("duplicate")) {
+                    JOptionPane.showMessageDialog(dialog,
+                        "Cannot add due to duplicate entry.",
+                        "Add Not Allowed",
+                        JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(dialog,
+                        "An unexpected error occurred. Please try again.",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+                }
             }
         });
 
@@ -423,10 +431,18 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
                         JOptionPane.ERROR_MESSAGE);
                     costField.requestFocus();
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(dialog,
-                        "Error: " + ex.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                    String msg = ex.getMessage() != null ? ex.getMessage().toLowerCase() : "";
+                    if (msg.contains("duplicate")) {
+                        JOptionPane.showMessageDialog(dialog,
+                            "Cannot update due to duplicate entry.",
+                            "Update Not Allowed",
+                            JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(dialog,
+                            "An unexpected error occurred. Please try again.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             });
 

@@ -173,8 +173,22 @@ public class AssignDeviceDialog extends JDialog {
             assignmentAdapter.assignDevice(selectedEmployee.id(), selectedDevice.id());
             return true;
         } catch (IllegalArgumentException e) {
+            String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+            if (msg.contains("already assigned")) {
+                JOptionPane.showMessageDialog(this,
+                    "This device is already assigned.",
+                    "Assignment Error",
+                    JOptionPane.ERROR_MESSAGE);
+            } else {
+                JOptionPane.showMessageDialog(this,
+                    "An unexpected error occurred. Please try again.",
+                    "Assignment Error",
+                    JOptionPane.ERROR_MESSAGE);
+            }
+            return false;
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(this,
-                e.getMessage(),
+                "An unexpected error occurred. Please try again.",
                 "Assignment Error",
                 JOptionPane.ERROR_MESSAGE);
             return false;

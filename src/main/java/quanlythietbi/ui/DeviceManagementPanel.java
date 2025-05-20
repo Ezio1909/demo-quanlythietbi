@@ -403,10 +403,18 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                 adapter.addDevice(newDevice);
                 refreshDeviceTable();
             } catch (Exception e) {
-                JOptionPane.showMessageDialog(this, 
-                    "Error: " + e.getMessage(), 
-                    "Error", 
-                    JOptionPane.ERROR_MESSAGE);
+                String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                if (msg.contains("duplicate") && msg.contains("serial_number")) {
+                    JOptionPane.showMessageDialog(this, 
+                        "Cannot add due to duplicate serial number", 
+                        "Add Not Allowed", 
+                        JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this, 
+                        "An unexpected error occurred. Please try again.", 
+                        "Error", 
+                        JOptionPane.ERROR_MESSAGE);
+                }
             }
         }
     }
@@ -535,10 +543,18 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
                     adapter.updateDevice(updatedDevice);
                     refreshDeviceTable();
                 } catch (Exception e) {
-                    JOptionPane.showMessageDialog(this, 
-                        "Error: " + e.getMessage(), 
-                        "Error", 
-                        JOptionPane.ERROR_MESSAGE);
+                    String msg = e.getMessage() != null ? e.getMessage().toLowerCase() : "";
+                    if (msg.contains("duplicate") && msg.contains("serial_number")) {
+                        JOptionPane.showMessageDialog(this, 
+                            "Cannot update due to duplicate serial number", 
+                            "Update Not Allowed", 
+                            JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        JOptionPane.showMessageDialog(this, 
+                            "An unexpected error occurred. Please try again.", 
+                            "Error", 
+                            JOptionPane.ERROR_MESSAGE);
+                    }
                 }
             }
         });
@@ -561,8 +577,16 @@ public class DeviceManagementPanel extends JPanel implements RefreshablePanel {
             JOptionPane.YES_NO_OPTION);
 
         if (confirm == JOptionPane.YES_OPTION) {
-            adapter.deleteDevice(deviceId);
-            refreshDeviceTable();
+            try {
+                adapter.deleteDevice(deviceId);
+                refreshDeviceTable();
+            } catch (RuntimeException ex) {
+                // Show user-friendly error if it's a constraint violation
+                JOptionPane.showMessageDialog(this,
+                    "Cannot delete due to device being used",
+                    "Delete Not Allowed",
+                    JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 

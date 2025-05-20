@@ -61,6 +61,12 @@ public class DeviceManagementAdapter {
         try {
             deviceDAO.deleteById(id);
         } catch (SQLException e) {
+            // Check for SQLIntegrityConstraintViolationException
+            if (e.getCause() instanceof java.sql.SQLIntegrityConstraintViolationException ||
+                e instanceof java.sql.SQLIntegrityConstraintViolationException ||
+                (e.getMessage() != null && e.getMessage().toLowerCase().contains("foreign key constraint"))) {
+                throw new RuntimeException("Cannot delete device: it is still assigned to one or more employees.", e);
+            }
             logger.error("Failed to delete device with id: {}", id, e);
         }
     }
