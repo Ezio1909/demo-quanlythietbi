@@ -21,6 +21,8 @@ A Java Swing-based application for managing company devices and their assignment
   - Condition
   - Department
   - Location
+- Real-time data updates with configurable auto-refresh
+- Smart status tracking and updates
 
 ### Assignment Management
 - Assign devices to employees with expiration dates
@@ -34,6 +36,8 @@ A Java Swing-based application for managing company devices and their assignment
   - Device
   - Department
 - Expiration date tracking and notifications
+- Real-time assignment status updates
+- Automatic device status synchronization
 
 ### Maintenance Management
 - Schedule and track device maintenance
@@ -46,6 +50,21 @@ A Java Swing-based application for managing company devices and their assignment
   - Device
   - Type
 - Cost tracking and reporting
+- Automatic maintenance status progression:
+  - Smart status updates based on scheduling
+  - Automatic transition to "In Progress" when scheduled time arrives
+  - Real-time status monitoring
+
+### Real-Time Features
+- Automatic data refresh across all panels
+- Configurable refresh intervals
+- Visual refresh status indicators
+- Smart status transitions:
+  - Maintenance status auto-updates based on schedule
+  - Device status sync with assignments
+  - Assignment expiration tracking
+- Background task processing
+- Non-blocking UI updates
 
 ### User Interface
 - Modern dark theme with professional design
@@ -58,40 +77,37 @@ A Java Swing-based application for managing company devices and their assignment
 - User-friendly forms with validation
 - Responsive layout design
 - Clear status indicators and icons
+- Real-time update indicators
+- Auto-refresh status display
 
-### Reporting & Analytics
-- Generate various reports:
-  - Device inventory status
-  - Maintenance history
-  - Assignment tracking
-  - Usage statistics
-- Export reports in multiple formats:
-  - PDF
-  - Excel
-  - CSV
-- Customizable report settings
-- Auto-generate scheduled reports
+### System Features
+- Multi-threaded connection pooling
+- Automatic database initialization
+- Smart database schema selection:
+  - Production schema with triggers (MySQL)
+  - Testing schema without triggers (H2)
+- Thread-safe singleton connections
+- Robust error handling
+- Comprehensive logging
+- Auto-refresh capabilities
+- Background task processing
 
-### System Settings
-- Configurable system preferences:
-  - Language settings
-  - Theme options
-  - Notification preferences
-- Database configuration:
-  - Multiple database support (H2, MySQL)
-  - Automatic backups
-  - Backup location configuration
-- Report customization:
-  - Default format selection
-  - Logo inclusion options
-  - Auto-generation scheduling
+### Technical Implementation
+- Custom connection pooling with BlockingQueue
+- Double-checked locking for thread safety
+- Volatile variables for memory consistency
+- Comprehensive error logging
+- Clean architecture with DAO pattern
+- Service layer abstraction
+- Event-driven UI updates
+- Automatic resource management
 
 ## Technical Stack
 
 - Java 17
 - Swing (Modern UI)
-- H2 Database (for fast unit/integration testing, no triggers)
-- MySQL 8 (for dev/demo/production, with triggers)
+- H2 Database (for fast unit/integration testing)
+- MySQL 8 (for dev/demo/production)
 - Custom Connection Pool (using BlockingQueue)
 - SLF4J + Logback (Logging)
 - Maven
@@ -99,20 +115,23 @@ A Java Swing-based application for managing company devices and their assignment
 ## Database Schema & Triggers
 
 ### MySQL (dev/demo/production)
-- Uses `schema.sql` with full schema and **triggers** for device status automation.
-- Triggers automatically update device status on assignment, return, and maintenance events.
-- Schema is resettable for dev/demo with `TRUNCATE` and sample data.
+- Uses `schema.sql` with full schema and triggers for device status automation
+- Triggers automatically update device status on:
+  - Assignment creation
+  - Device return
+  - Maintenance status changes
+- Schema is resettable for dev/demo with `TRUNCATE` and sample data
 
 ### H2 (unit/integration testing)
-- Uses `schema-h2.sql` (no triggers) for compatibility and fast test cycles.
-- Schema is otherwise identical to MySQL, ensuring test coverage matches production logic.
-- Tests run quickly and reliably without MySQL-specific syntax issues.
+- Uses `schema-h2.sql` (no triggers) for compatibility and fast test cycles
+- Schema is otherwise identical to MySQL
+- Tests run quickly and reliably without MySQL-specific syntax issues
 
 ### Automatic Schema Selection
 - The application detects the database type at runtime:
-  - Loads `schema.sql` for MySQL.
-  - Loads `schema-h2.sql` for H2.
-- This ensures the correct schema is always used for the environment.
+  - Loads `schema.sql` for MySQL
+  - Loads `schema-h2.sql` for H2
+- This ensures the correct schema is always used for the environment
 
 ## Project Structure
 
@@ -166,11 +185,11 @@ docker-compose up -d
   - User: `devuser`
   - Password: `devpass`
   - Root password: `secret`
-- The schema and sample data will be initialized automatically from `mysql-init/schema.sql`.
+- The schema and sample data will be initialized automatically from `mysql-init/schema.sql`
 
 ### 2. Configure the Application
 
-- The application is pre-configured to use MySQL if you set `DBType.MYSQL` in your code (see `DeviceManagementApplication.java`).
+- The application is pre-configured to use MySQL if you set `DBType.MYSQL` in your code
 - The MySQL JDBC URL is: `jdbc:mysql://localhost:3306/devicedb?useSSL=false&serverTimezone=UTC`
 - User: `devuser`, Password: `devpass`
 
@@ -186,23 +205,6 @@ Or run the JAR:
 ```bash
 java -jar target/device-management-system-1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
-
-## Implementation Details
-
-### User Interface Design
-- Dark theme sidebar (RGB: 51,51,51)
-- Card-based layouts
-- Responsive design
-- Interactive elements with hover effects
-- Clean typography
-- Proper spacing and padding
-
-### Technical Features
-- Custom connection pooling with BlockingQueue
-- Comprehensive error logging
-- H2 database with schema management
-- Clean architecture with DAO pattern
-- Service layer abstraction
 
 ## Contributing
 
