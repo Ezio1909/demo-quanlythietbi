@@ -74,7 +74,7 @@ CREATE TABLE IF NOT EXISTS device_maintenance (
     scheduled_for TIMESTAMP,
     completed_at TIMESTAMP,
     cost DECIMAL(10,2),
-    status VARCHAR(50) NOT NULL DEFAULT 'Pending',
+    status VARCHAR(20) NOT NULL DEFAULT 'Pending',
     notes TEXT,
     FOREIGN KEY (device_id) REFERENCES devices(id)
 );
@@ -182,6 +182,18 @@ FOR EACH ROW
 BEGIN
     IF NEW.status = 'Completed' AND OLD.status != 'Completed' THEN
         UPDATE devices SET status = 'Available' WHERE id = NEW.device_id;
+    END IF;
+END//
+
+DROP TRIGGER IF EXISTS trg_maintenance_scheduled_time;//
+CREATE TRIGGER trg_maintenance_scheduled_time
+BEFORE UPDATE ON device_maintenance
+FOR EACH ROW
+BEGIN
+    IF (OLD.status IN ('Pending', 'Scheduled') 
+        AND NEW.status = OLD.status 
+        AND NEW.scheduled_for <= NOW()) THEN
+        SET NEW.status = 'In Progress';
     END IF;
 END//
 DELIMITER ; 
