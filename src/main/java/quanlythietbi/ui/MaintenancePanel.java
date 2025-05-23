@@ -28,6 +28,9 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import quanlythietbi.entity.MaintenanceRecord;
 import quanlythietbi.service.adapter.DeviceManagementAdapter;
 import quanlythietbi.service.adapter.MaintenanceManagementAdapter;
@@ -45,6 +48,7 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
     private boolean autoRefreshEnabled = false;
     private JLabel autoRefreshLabel;
     private static final DateTimeFormatter REFRESH_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final Logger logger = LoggerFactory.getLogger(MaintenancePanel.class);
 
     public MaintenancePanel(MaintenanceManagementAdapter maintenanceAdapter, DeviceManagementAdapter deviceAdapter) {
         this.maintenanceAdapter = maintenanceAdapter;
@@ -112,7 +116,8 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
             "Scheduled",
             "Completed",
             "Cost",
-            "Status"
+            "Status",
+            "Notes"
         };
         
         tableModel = new DefaultTableModel(columns, 0) {
@@ -527,15 +532,19 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
         int selectedRow = maintenanceTable.getSelectedRow();
         Integer selectedId = null;
         if (selectedRow != -1) {
-            selectedId = (Integer) tableModel.getValueAt(selectedRow, 0);
+            selectedId = (Integer) tableModel.getValueAt(maintenanceTable.convertRowIndexToModel(selectedRow), 0);
         }
+
         tableModel.setRowCount(0);
-        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
+
         for (MaintenanceRecord record : records) {
             // Auto-update status to 'In Progress' if scheduled time has passed
             if (("Pending".equals(record.status()) || "Scheduled".equals(record.status()))
                 && record.scheduledFor() != null
                 && !record.scheduledFor().isAfter(now)) {
+                
+                // Create updated record with "In Progress" status
                 MaintenanceRecord updated = new MaintenanceRecord(
                     record.id(),
                     record.deviceId(),
@@ -549,33 +558,41 @@ public class MaintenancePanel extends JPanel implements RefreshablePanel {
                     "In Progress",
                     record.notes()
                 );
-                maintenanceAdapter.updateMaintenanceRecord(updated);
-                record = updated;
+                
+                try {
+                    maintenanceAdapter.updateMaintenanceRecord(updated);
+                    record = updated;
+                } catch (Exception e) {
+                    logger.error("Failed to update maintenance status to In Progress", e);
+                }
             }
+
             Object[] row = {
                 record.id(),
                 record.deviceName(),
                 record.maintenanceType(),
                 record.description(),
                 record.reportedAt().format(DATE_FORMATTER),
-                record.scheduledFor() != null ? 
-                    record.scheduledFor().format(DATE_FORMATTER) : "",
-                record.completedAt() != null ? 
-                    record.completedAt().format(DATE_FORMATTER) : "",
-                record.cost(),
-                record.status()
+                record.scheduledFor() != null ? record.scheduledFor().format(DATE_FORMATTER) : "",
+                record.completedAt() != null ? record.completedAt().format(DATE_FORMATTER) : "",
+                record.cost() != null ? record.cost().toString() : "",
+                record.status(),
+                record.notes()
             };
             tableModel.addRow(row);
         }
+
         // Restore selection
         if (selectedId != null) {
             for (int i = 0; i < tableModel.getRowCount(); i++) {
                 if (tableModel.getValueAt(i, 0).equals(selectedId)) {
-                    maintenanceTable.setRowSelectionInterval(i, i);
+                    int viewRow = maintenanceTable.convertRowIndexToView(i);
+                    maintenanceTable.setRowSelectionInterval(viewRow, viewRow);
                     break;
                 }
             }
         }
+
         updateAutoRefreshLabel();
     }
 
